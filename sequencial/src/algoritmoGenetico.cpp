@@ -5,18 +5,49 @@
 #include <chrono>
 #include <unordered_set>
 #include <numeric>
-#include <omp.h>
 #include <cmath>
 
+// =====================
+// Tipos auxiliares
+// =====================
 typedef std::vector<Individuo> vectorIndiviudos;
 typedef std::vector<Island> vetorIslands;
 
-GeneticAlgorithm::GeneticAlgorithm(int nGen, float pMut, int tPop, float nElite, const std::string& caminho,std::uint64_t seed, int numInslands) 
-    :seed(seed),numGeracoes(nGen), probMutacao(pMut), tamPopulacao(tPop),numInslands(numInslands), tamElite(static_cast<int>(std::floor(nElite * tamPopulacao))){
-
+// =====================
+// Construtor
+// =====================
+GeneticAlgorithm::GeneticAlgorithm(int nGen, float pMut, int tPop, float nElite, const std::string& caminho,std::uint64_t seed, int numInslands,float numMigracao,std::string topologia,int freqMigracao) 
+    :seed(seed),numGeracoes(nGen), probMutacao(pMut), tamPopulacao(tPop),numInslands(numInslands),topologia(topologia),freqMigracao(freqMigracao), tamMigracao(static_cast<int>(std::floor(numMigracao * tamPopulacao))), tamElite(static_cast<int>(std::floor(nElite * tamPopulacao))){
+    
     matrizDeCaminhos = lerArquivo(caminho);
     tamIndividuo = matrizDeCaminhos.empty() ? 0 : matrizDeCaminhos.size();
 }
+
+// =====================
+// Funções auxiliares
+// =====================
+
+void printVector(const std::vector<int>& vec, const std::string& label = "") {
+    if (!label.empty()) std::cout << label << ": ";
+    std::cout << "[ ";
+    for (size_t i = 0; i < vec.size(); ++i) {
+        std::cout << vec[i];
+        if (i < vec.size() - 1) std::cout << ", ";
+    }
+    std::cout << " ]\n";
+}
+
+size_t hashGenes(const std::vector<int>& genes) {
+    size_t seed = genes.size();
+    for (int g : genes) {
+        seed ^= std::hash<int>()(g) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+    }
+    return seed;
+}
+
+// =====================
+// Funções do GeneticAlgorithm
+// =====================
 
 Individuo GeneticAlgorithm::melhorIndividuo(vetorIslands &islands) {
     bool inicializado = false;
@@ -26,20 +57,15 @@ Individuo GeneticAlgorithm::melhorIndividuo(vetorIslands &islands) {
         if (island.populacao.empty()) continue;
 
         auto it = std::min_element(island.populacao.begin(), island.populacao.end(),
-                                   [](const Individuo& a, const Individuo& b) {
-                                       return a.fitness < b.fitness;
-                                   });
+                                   [](const Individuo& a, const Individuo& b) { return a.fitness < b.fitness; });
 
         if (!inicializado || it->fitness < melhor.fitness) {
-            melhor = *it;  // cópia direta
+            melhor = *it;
             inicializado = true;
         }
     }
 
-    if (!inicializado) {
-        throw std::runtime_error("Nenhuma população encontrada para avaliar.");
-    }
-
+    if (!inicializado) throw std::runtime_error("Nenhuma população encontrada para avaliar.");
     return melhor;
 }
 
@@ -54,71 +80,60 @@ double GeneticAlgorithm::calcularDistancia(const std::vector<int> &individuo) co
     return soma;
 }
 
-
 void GeneticAlgorithm::gerarPopulacao(vetorIslands &islands){
     for(auto &island : islands){
         island.populacao.reserve(tamPopulacao);
-        
-        for(int i = 0; i < tamPopulacao;i++){
+        for(int i = 0; i < tamPopulacao; i++){
             Individuo newIndividuo;
             newIndividuo.genes.resize(tamIndividuo);
-            std::iota(newIndividuo.genes.begin(),newIndividuo.genes.end(),1);
-            std::shuffle(newIndividuo.genes.begin(),newIndividuo.genes.end(),island.geradorlocal);
+            std::iota(newIndividuo.genes.begin(), newIndividuo.genes.end(), 1);
+            std::shuffle(newIndividuo.genes.begin(), newIndividuo.genes.end(), island.geradorlocal);
             newIndividuo.fitness = calcularDistancia(newIndividuo.genes);
             island.populacao.push_back(newIndividuo);
         }
     }
 }
 
+// =====================
+// Seleção, Elite, Crossover e Mutação
+// =====================
+
 vectorIndiviudos GeneticAlgorithm::selecao(vectorIndiviudos &populacao, std::mt19937 &geradorLocal) {
     std::uniform_int_distribution<int> dist(0, populacao.size() - 1);
-    std::vector<Individuo> pais;
+    vectorIndiviudos pais;
 
     while (pais.size() < 2) {
-        std::vector<Individuo> candidatos;
-        for (int i = 0; i < 4; ++i) {
+        vectorIndiviudos candidatos;
+        for (int i = 0; i < 4; ++i)
             candidatos.push_back(populacao[dist(geradorLocal)]);
-        }
-        auto melhor = *std::min_element(candidatos.begin(), candidatos.end(), [](const Individuo& a, const Individuo& b) {
-            return a.fitness < b.fitness;
-        });
+
+        auto melhor = *std::min_element(candidatos.begin(), candidatos.end(),
+                                        [](const Individuo& a, const Individuo& b){ return a.fitness < b.fitness; });
+
         bool duplicado = false;
-        for (const auto& p : pais) {
-            if (p.genes == melhor.genes) {
-                duplicado = true;
-                break;
-            }
-        }
-        if (!duplicado) {
-            pais.push_back(melhor);
-        }
+        for (const auto &p : pais) if (p.genes == melhor.genes) { duplicado = true; break; }
+        if (!duplicado) pais.push_back(melhor);
     }
     return pais;
 }
 
 vectorIndiviudos GeneticAlgorithm::selecionarElite(vectorIndiviudos &populacao){
     vectorIndiviudos copia = populacao;
-    std::partial_sort(copia.begin(), copia.begin() + tamElite, copia.end(), [](const Individuo& a, const Individuo& b) {
-        return a.fitness < b.fitness;
-    });
+    std::partial_sort(copia.begin(), copia.begin() + tamElite, copia.end(),
+                      [](const Individuo& a, const Individuo& b){ return a.fitness < b.fitness; });
 
     vectorIndiviudos elite;
     std::unordered_set<std::string> vistos;
 
-    for (const auto& ind : copia) {
+    for (const auto &ind : copia) {
         std::string hash;
-        for (int gene : ind.genes)
-            hash += std::to_string(gene) + ",";
-
+        for (int gene : ind.genes) hash += std::to_string(gene) + ",";
         if (vistos.find(hash) == vistos.end()) {
             vistos.insert(hash);
             elite.push_back(ind);
         }
-
-        if (elite.size() >= tamElite)
-            break;
+        if (elite.size() >= tamElite) break;
     }
-
     return elite;
 }
 
@@ -131,7 +146,7 @@ void GeneticAlgorithm::mutacao(Individuo &ind, std::mt19937 &geradorLocal) {
     ind.fitness = calcularDistancia(ind.genes);
 }
 
-Individuo GeneticAlgorithm::crossoverOX(const Individuo &pai1, const Individuo &pai2,std::mt19937 &geradorLocal) {
+Individuo GeneticAlgorithm::crossoverOX(const Individuo &pai1, const Individuo &pai2, std::mt19937 &geradorLocal) {
     std::uniform_int_distribution<int> dist(0, tamIndividuo - 1);
     int p1 = dist(geradorLocal), p2 = dist(geradorLocal);
     if (p1 > p2) std::swap(p1, p2);
@@ -150,101 +165,98 @@ Individuo GeneticAlgorithm::crossoverOX(const Individuo &pai1, const Individuo &
         while (pos >= p1 && pos < p2) ++pos;
         filho.genes[pos++] = gene;
     }
-
     filho.fitness = calcularDistancia(filho.genes);
     return filho;
 }
 
-void GeneticAlgorithm::executarAlgoritmo(){
-    std::uniform_real_distribution<double> distLocal(0, 1);
+vectorIndiviudos GeneticAlgorithm::selecionarMigrantesUnicos(const vectorIndiviudos &populacao, std::mt19937 &gerador) {
+    vectorIndiviudos selecionados;
+    std::unordered_set<size_t> hashesVistos;
 
-    std::vector<Island> islands; 
-    islands.reserve(numInslands); 
-    for (int i = 0; i < numInslands; i++){ 
-        islands.emplace_back(seed); // população ainda vazia 
+    std::vector<int> indices(populacao.size());
+    std::iota(indices.begin(), indices.end(), 0);
+    std::shuffle(indices.begin(), indices.end(), gerador);
+
+    for (int idx : indices) {
+        const auto &ind = populacao[idx];
+        size_t h = hashGenes(ind.genes);
+        if (hashesVistos.find(h) == hashesVistos.end()) {
+            hashesVistos.insert(h);
+            selecionados.push_back(ind);
+        }
+        if (selecionados.size() >= tamMigracao) break;
     }
+    return selecionados;
+}
+
+void GeneticAlgorithm::migracaoPopulacao(vectorIndiviudos &populacao, const vectorIndiviudos &selecionados) {
+    int k = selecionados.size();
+    if (k == 0 || populacao.empty()) return;
+
+    if (k > populacao.size()) k = populacao.size();
+    std::partial_sort(populacao.begin(), populacao.begin() + k, populacao.end(),
+                      [](const Individuo &a, const Individuo &b){ return a.fitness > b.fitness; });
+
+    for (int i = 0; i < k; ++i)
+        populacao[i] = selecionados[i];
+}
+
+// =====================
+// Funções de alto nível
+// =====================
+
+void GeneticAlgorithm::executarGeracao(Island &ilha, std::uniform_real_distribution<double> &distLocal) {
+    vectorIndiviudos elite = selecionarElite(ilha.populacao);
+    int numFilhos = tamPopulacao - tamElite;
+    vectorIndiviudos novaPop(numFilhos);
+
+    for (int i = 0; i < numFilhos; ++i) {
+        auto pais = selecao(ilha.populacao, ilha.geradorlocal);
+        Individuo prole = crossoverOX(pais[0], pais[1], ilha.geradorlocal);
+        if (distLocal(ilha.geradorlocal) < probMutacao)
+            mutacao(prole, ilha.geradorlocal);
+        novaPop[i] = prole;
+    }
+
+    novaPop.insert(novaPop.end(), elite.begin(), elite.end());
+    ilha.populacao = std::move(novaPop);
+}
+
+void GeneticAlgorithm::realizarMigracao(vetorIslands &islands) {
+    for (auto &ilhaOrigem : islands) {
+        auto selecionados = selecionarMigrantesUnicos(ilhaOrigem.populacao, ilhaOrigem.geradorlocal);
+        for (int vizinhoId : ilhaOrigem.vizinhos) {
+            auto it = std::find_if(islands.begin(), islands.end(),
+                                   [vizinhoId](const Island &il){ return il.idIlha == vizinhoId; });
+            if (it != islands.end())
+                migracaoPopulacao(it->populacao, selecionados);
+        }
+    }
+}
+
+// =====================
+// Função principal
+// =====================
+
+void GeneticAlgorithm::executarAlgoritmo() {
+    std::uniform_real_distribution<double> distLocal(0, 1);
+    std::vector<Island> islands = criarMalha(numInslands, seed);
 
     gerarPopulacao(islands);
-
-    // for(auto &island : islands){
-    //     island.imprimirPopulacao();
-    // }
     Individuo melhor = melhorIndividuo(islands);
-    //std::cout << "teste0000";
-    //std::cout << melhor.fitness;
-    
 
-    for(int geracao = 0;geracao < numGeracoes;geracao++){
-        for(auto &island : islands){
-            vectorIndiviudos elite;
-            vectorIndiviudos novaPopulacao;
+    for (int geracao = 0; geracao < numGeracoes; ++geracao) {
+        for (auto &ilha : islands)
+            executarGeracao(ilha, distLocal);
 
-            int numFilhos =  tamPopulacao - tamElite;
+        if (geracao % freqMigracao == 0)
+            realizarMigracao(islands);
 
-            novaPopulacao.resize(numFilhos);
-            elite = selecionarElite(island.populacao);
-
-            for(int i = 0; i < numFilhos; i++){            
-                vectorIndiviudos pais;
-                pais = selecao(island.populacao,island.geradorlocal);
-                Individuo prole = crossoverOX(pais[0],pais[1],island.geradorlocal);
-                double mutacaoPro = distLocal(island.geradorlocal);
-                if(mutacaoPro < probMutacao){
-                    mutacao(prole,island.geradorlocal);
-                }
-                novaPopulacao[i] = prole;
-            }
-            novaPopulacao.insert(novaPopulacao.end(),elite.begin(),elite.end());
-            island.populacao = move(novaPopulacao);
-        }
-        Individuo auxMelhor = melhorIndividuo(islands);
-        if(auxMelhor.fitness < melhor.fitness){
+        auto auxMelhor = melhorIndividuo(islands);
+        if (auxMelhor.fitness < melhor.fitness)
             melhor = auxMelhor;
-        }   
     }
+
     std::cout << "Melhor fitness: " << melhor.fitness << std::endl;
     std::cout << "Solução: " << melhor.cromossomo() << std::endl;
-
-    // omp_set_num_threads(numThread);
-    // geradorLocalThread geradorLocal(seed,numThread);
-    // std::uniform_real_distribution<double> distLocal(0, 1);
-
-    // vectorIndiviudos populacao;
-    // gerarPopulacao(populacao);
-    // Individuo melhor = melhorIndividuo(populacao);
-    // int numFilhos =  tamPopulacao - tamElite;
-    // for(int geracao = 0;geracao < numGeracoes;geracao++){  
-    //     vectorIndiviudos elite;
-    //     vectorIndiviudos novaPopulacao;
-    //     novaPopulacao.resize(numFilhos);
-    //     elite = selecionarElite(populacao);
-        
-    //     #pragma omp parallel
-    //     {
-    //         int numThreads = omp_get_num_threads();
-    //         int threadId = omp_get_thread_num();
-                    
-    //         #pragma omp for schedule(static)
-    //         for(int i = 0; i < numFilhos; i++){
-                
-    //             vectorIndiviudos pais;
-    //             pais = selecao(populacao,geradorLocal.access(threadId));
-    //             Individuo prole = crossoverOX(pais[0],pais[1],geradorLocal.access(threadId));
-    //             double mutacaoPro = distLocal(geradorLocal.access(threadId));
-    //             if(mutacaoPro < probMutacao){
-    //                 mutacao(prole,geradorLocal.access(threadId));
-    //             }
-    //             novaPopulacao[i] = prole;
-    //         }
-            
-    //     }
-    //     Individuo auxMelhor = melhorIndividuo(novaPopulacao);
-    //     if(auxMelhor.fitness < melhor.fitness){
-    //         melhor = auxMelhor;
-    //     }
-    //     novaPopulacao.insert(novaPopulacao.end(),elite.begin(),elite.end());
-    //     populacao = move(novaPopulacao);
-    // }
-    // std::cout << "Melhor fitness: " << melhor.fitness << std::endl;
-    // std::cout << "Solução: " << melhor.cromossomo() << std::endl;
 }

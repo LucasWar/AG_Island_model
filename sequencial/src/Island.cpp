@@ -10,6 +10,6 @@ Island::Island(int seed) : idIlha(nextId++), seed(seed), geradorlocal(idIlha + s
 
 void Island::imprimirPopulacao(){
     for(auto &individuo : populacao){
-        std::cout << "Caminho" << individuo.cromossomo() << "Fitness" << individuo.fitness << std::endl;
+        std::cout << "Caminho: " << individuo.cromossomo() << " Fitness: " << individuo.fitness << std::endl;
     }
 }

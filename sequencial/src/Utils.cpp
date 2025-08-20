@@ -1,4 +1,5 @@
 #include "utils.h"
+#include "Island.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -55,4 +56,46 @@ std::uint64_t lerArquivoSeed(const std::string& nomeArquivo, std::size_t inicio,
     }
 
     return resultado;
+}
+
+std::vector<Island> criarMalha(int numIslands, int seed) {
+    int numRows = std::floor(std::sqrt(numIslands));
+    int numCols = std::ceil((double)numIslands / numRows);
+
+    std::vector<Island> ilhas;
+    ilhas.reserve(numIslands);
+
+
+    for (int id = 0; id < numIslands; id++) {
+        Island ilha(seed);
+        
+
+        int linha = ilha.idIlha / numCols;
+        int coluna = ilha.idIlha % numCols;
+
+        // cima
+        if (linha > 0) ilha.vizinhos.push_back((linha - 1) * numCols + coluna);
+        // baixo
+        if ((linha + 1) * numCols + coluna < numIslands) 
+            ilha.vizinhos.push_back((linha + 1) * numCols + coluna);
+        // esquerda
+        if (coluna > 0) ilha.vizinhos.push_back(linha * numCols + (coluna - 1));
+        // direita
+        if (coluna < numCols - 1 && id + 1 < numIslands) 
+            ilha.vizinhos.push_back(linha * numCols + (coluna + 1));
+
+        ilhas.push_back(ilha);
+    }
+    Island::nextId = 1;
+    return ilhas;
+}
+
+std::vector<int> criarAnel(int numIlhas) {
+    std::vector<int> vizinhos(numIlhas);
+    
+    for (int i = 0; i < numIlhas; i++) {
+        vizinhos[i] = (i + 1) % numIlhas; // próximo (com wrap-around)
+    }
+
+    return vizinhos;
 }

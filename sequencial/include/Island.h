@@ -8,6 +8,7 @@ struct Island {
     static int nextId;          // declaração apenas
     int idIlha;
     int seed;
+    std::vector<int> vizinhos;
     std::vector<Individuo> populacao;
     std::mt19937 geradorlocal;
     Island(int seed); // construtor

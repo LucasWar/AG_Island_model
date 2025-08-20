@@ -8,7 +8,7 @@ Individuo::Individuo(std::vector<int> gen, double fit) : genes(gen),fitness(fit)
 std::string Individuo::cromossomo() {
     std::ostringstream oss;
     for (size_t i = 0; i < genes.size(); ++i) {
-        oss << genes[i];
+        oss << genes[i] + 1;
         if (i != genes.size() - 1) {
             oss << "-";
         }

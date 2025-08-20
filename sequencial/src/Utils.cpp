@@ -1,5 +1,6 @@
 #include "utils.h"
 #include "Island.h"
+#include "cvrpData.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -98,4 +99,97 @@ std::vector<int> criarAnel(int numIlhas) {
     }
 
     return vizinhos;
+}
+
+double distanciaEuclidiana(double x1, double y1, double x2, double y2) {
+    double dx = x1 - x2;
+    double dy = y1 - y2;
+    return std::sqrt(dx * dx + dy * dy);
+}
+
+CVRPData lerArquivoVRP(const std::string& caminhoArquivo) {
+    std::ifstream arquivo(caminhoArquivo);
+    if (!arquivo.is_open()) {
+        throw std::runtime_error("Erro ao abrir arquivo: " + caminhoArquivo);
+    }
+
+    std::string linha;
+    int dimension = 0;
+    int capacidade = 0;
+    int numVeiculos = 1;
+    std::vector<std::pair<double, double>> coordenadas;
+    std::vector<int> demandas;
+    int deposito = -1;
+
+    // Flags para identificar em qual seção estamos
+    bool emNodeCoord = false, emDemand = false, emDepot = false;
+
+    while (std::getline(arquivo, linha)) {
+        if (linha.find("DIMENSION") != std::string::npos) {
+            dimension = std::stoi(linha.substr(linha.find(":") + 1));
+        }
+        else if (linha.find("TRUCKS") != std::string::npos) {
+            numVeiculos = std::stoi(linha.substr(linha.find(":") + 1));
+        }
+        else if (linha.find("CAPACITY") != std::string::npos) {
+            capacidade = std::stoi(linha.substr(linha.find(":") + 1));
+        }
+        else if (linha.find("NODE_COORD_SECTION") != std::string::npos) {
+            emNodeCoord = true;
+            continue;
+        }
+        else if (linha.find("DEMAND_SECTION") != std::string::npos) {
+            emNodeCoord = false;
+            emDemand = true;
+            continue;
+        }
+        else if (linha.find("DEPOT_SECTION") != std::string::npos) {
+            emDemand = false;
+            emDepot = true;
+            continue;
+        }
+        else if (linha.find("EOF") != std::string::npos) {
+            break;
+        }
+
+        if (emNodeCoord) {
+            std::istringstream iss(linha);
+            int id;
+            double x, y;
+            if (iss >> id >> x >> y) {
+                if ((int)coordenadas.size() < dimension)
+                    coordenadas.push_back({x, y});
+            }
+        }
+        else if (emDemand) {
+            std::istringstream iss(linha);
+            int id, d;
+            if (iss >> id >> d) {
+                if ((int)demandas.size() < dimension)
+                    demandas.push_back(d);
+            }
+        }
+        else if (emDepot) {
+            int id = std::stoi(linha);
+            if (id == -1) {
+                emDepot = false; // fim da seção
+            } else {
+                deposito = id - 1; // indexando a partir de 0
+            }
+        }
+    }
+
+    // Construir a matriz de distâncias
+    std::vector<std::vector<double>> distancias(dimension, std::vector<double>(dimension, 0.0));
+    for (int i = 0; i < dimension; i++) {
+        for (int j = 0; j < dimension; j++) {
+            if (i != j) {
+                distancias[i][j] = distanciaEuclidiana(coordenadas[i].first, coordenadas[i].second,
+                                                      coordenadas[j].first, coordenadas[j].second);
+            }
+        }
+    }
+
+    CVRPData dados{distancias, demandas, capacidade, deposito, numVeiculos};
+    return dados;
 }

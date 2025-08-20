@@ -4,14 +4,14 @@
 #include <iostream>
 #include <omp.h>
 
-#define ARQUIVO_ENTRADA "entradas/ATT48.txt"
+#define ARQUIVO_ENTRADA "entradas/B-n78-k10.txt"
 #define NUMERO_GERACOES 2500
 #define PROB_MUTACAO    0.2
-#define TAM_POPULCAO    60
-#define TAM_ELITE       0.1
-#define NUM_ISLANDS     9 
-#define FREQ_MIGRACAO   200
-#define NUM_MIGRACAO    0.2
+#define TAM_POPULCAO    200
+#define TAM_ELITE       0.15
+#define NUM_ISLANDS     8
+#define FREQ_MIGRACAO   150
+#define NUM_MIGRACAO    0.25
 #define TOPOLOGIA       "Malha" //["Malha","Anel","Aleatoria"]
 
 int main() {

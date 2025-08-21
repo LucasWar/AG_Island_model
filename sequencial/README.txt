@@ -1,5 +1,5 @@
 Comando para compilar
-g++ -O2 -I include src/algoritmoGenetico.cpp src/individuo.cpp src/Utils.cpp src/main.cpp src/Island.cpp -o ag_exec
+g++ -O2 -I include src/algoritmoGenetico.cpp src/individuo.cpp src/Utils.cpp src/main.cpp src/Island.cpp src/Topologia.cpp -o ag_exec
 
 Executar
 ag_exec

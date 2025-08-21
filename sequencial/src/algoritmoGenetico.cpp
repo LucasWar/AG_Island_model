@@ -1,4 +1,5 @@
 #include "algoritmoGenetico.h"
+#include "Topologia.h"
 #include "utils.h"
 #include "cvrpData.h"
 #include <iostream>
@@ -19,8 +20,8 @@ typedef std::vector<Island> vetorIslands;
 // =====================
 // Construtor
 // =====================
-GeneticAlgorithm::GeneticAlgorithm(int nGen, float pMut, int tPop, float nElite, const std::string& caminho,std::uint64_t seed, int numInslands,float numMigracao,std::string topologia,int freqMigracao) 
-    :seed(seed),numGeracoes(nGen), probMutacao(pMut), tamPopulacao(tPop),numInslands(numInslands),topologia(topologia),freqMigracao(freqMigracao), tamMigracao(static_cast<int>(std::floor(numMigracao * tamPopulacao))), tamElite(static_cast<int>(std::floor(nElite * tamPopulacao))){
+GeneticAlgorithm::GeneticAlgorithm(int nGen, float pMut, int tPop, float nElite, const std::string& caminho,std::uint64_t seed, int numInslands,float numMigracao,std::string opcTopologia,int freqMigracao) 
+    :seed(seed),numGeracoes(nGen), probMutacao(pMut), tamPopulacao(tPop),numInslands(numInslands),opcTopologia(opcTopologia),freqMigracao(freqMigracao), tamMigracao(static_cast<int>(std::floor(numMigracao * tamPopulacao))), tamElite(static_cast<int>(std::floor(nElite * tamPopulacao))){
     dataCVRP = lerArquivoVRP(caminho);
     // REMOVIDO: matrizDeCaminhos e tamIndividuo baseado nela
     tamIndividuo = dataCVRP.distancias.empty() ? 0 : dataCVRP.distancias.size(); // tamIndividuo agora representa o N total de locais (depósito + clientes)
@@ -219,6 +220,7 @@ void GeneticAlgorithm::mutacaoCVRP(Individuo &ind, std::mt19937 &geradorLocal) {
             pos2 = dist_clientes(geradorLocal);
         }
         std::swap(rotas[idx_rota][pos1], rotas[idx_rota][pos2]);
+        //std::reverse(rotas[idx_rota].begin() + pos1, rotas[idx_rota].begin() + pos2);
     }
 
     // Reconstruir o cromossomo
@@ -236,6 +238,185 @@ void GeneticAlgorithm::mutacaoCVRP(Individuo &ind, std::mt19937 &geradorLocal) {
 }
 
 // NOVO: Crossover específico para CVRP (Route Based Crossover Simplificado)
+
+std::vector<int> GeneticAlgorithm::repararCVRP(const std::vector<int>& clientes) {
+    // --- FASE 1: CONSTRUÇÃO GULOSA (GARANTE CAPACIDADE) ---
+    std::vector<std::vector<int>> rotas;
+    std::vector<double> cargas;
+
+    if (clientes.empty()) {
+        return {0, 0};
+    }
+    
+    // Inicia a primeira rota
+    rotas.push_back({});
+    cargas.push_back(0.0);
+
+    for (int cliente : clientes) {
+        double demanda = dataCVRP.demandas[cliente];
+
+        // Tenta alocar na última rota criada
+        if (cargas.back() + demanda <= dataCVRP.capacidade) {
+            rotas.back().push_back(cliente);
+            cargas.back() += demanda;
+        } else {
+            // Se não couber, cria uma nova rota para este cliente
+            rotas.push_back({cliente});
+            cargas.push_back(demanda);
+        }
+    }
+
+    // --- FASE 2: REPARO (GARANTE NÚMERO DE VEÍCULOS) ---
+    if (rotas.size() <= dataCVRP.numVeiculos) {
+        // Solução já é viável, apenas formate a saída
+        std::vector<int> solucaoFinal;
+        solucaoFinal.push_back(0);
+        for (const auto& rota : rotas) {
+            solucaoFinal.insert(solucaoFinal.end(), rota.begin(), rota.end());
+            solucaoFinal.push_back(0);
+        }
+        return solucaoFinal;
+    }
+
+    // Se excedeu o número de veículos, precisamos reparar
+    std::vector<int> clientesOrfaos;
+    
+    // Coleta clientes das rotas extras
+    while (rotas.size() > dataCVRP.numVeiculos) {
+        clientesOrfaos.insert(clientesOrfaos.end(), rotas.back().begin(), rotas.back().end());
+        rotas.pop_back();
+        cargas.pop_back();
+    }
+
+    // Tenta reinserir os clientes órfãos nas rotas válidas
+    bool todosInseridos = true;
+    for (int orfao : clientesOrfaos) {
+        double demandaOrfao = dataCVRP.demandas[orfao];
+        bool inserido = false;
+
+        // Procura a melhor posição de inserção (aqui, a primeira que couber)
+        // Uma melhoria seria buscar a inserção que gerasse o menor custo adicional.
+        for (int i = 0; i < rotas.size(); ++i) {
+            if (cargas[i] + demandaOrfao <= dataCVRP.capacidade) {
+                rotas[i].push_back(orfao); // Inserção simples no final
+                cargas[i] += demandaOrfao;
+                inserido = true;
+                break; // Vai para o próximo órfão
+            }
+        }
+        
+        if (!inserido) {
+            todosInseridos = false;
+            break; // Se um órfão não puder ser inserido, a reparação falhou
+        }
+    }
+
+    if (todosInseridos) {
+        // Sucesso na reparação! Formate a saída.
+        std::vector<int> solucaoFinal;
+        solucaoFinal.push_back(0);
+        for (const auto& rota : rotas) {
+            solucaoFinal.insert(solucaoFinal.end(), rota.begin(), rota.end());
+            solucaoFinal.push_back(0);
+        }
+        return solucaoFinal;
+    } else {
+        // Reparação impossível para esta permutação de clientes.
+        // Retornar um vetor vazio sinaliza a falha.
+        // O Algoritmo Genético deve então penalizar fortemente esta solução.
+        return {}; 
+    }
+}
+
+
+Individuo GeneticAlgorithm::crossoverOX(const Individuo &pai1, const Individuo &pai2, std::mt19937 &geradorLocal) {
+    // --- Extrair só os clientes (ignorar zeros) ---
+    std::vector<int> clientes1, clientes2;
+    for (int g : pai1.genes) if (g != 0) clientes1.push_back(g);
+    for (int g : pai2.genes) if (g != 0) clientes2.push_back(g);
+
+    int n = clientes1.size();
+    std::uniform_int_distribution<int> dist(0, n - 1);
+    int cut1 = dist(geradorLocal);
+    int cut2 = dist(geradorLocal);
+    if (cut1 > cut2) std::swap(cut1, cut2);
+
+    std::vector<int> filho(n, -1);
+
+    // Copiar segmento do pai1
+    for (int i = cut1; i <= cut2; i++) {
+        filho[i] = clientes1[i];
+    }
+
+    // Preencher com clientes do pai2 na ordem
+    int pos = (cut2 + 1) % n;
+    for (int c : clientes2) {
+        if (std::find(filho.begin(), filho.end(), c) == filho.end()) {
+            filho[pos] = c;
+            pos = (pos + 1) % n;
+        }
+    }
+
+    // --- Neste ponto "filho" é uma permutação de clientes, SEM rotas ---
+    // Agora precisamos reconstruir rotas respeitando a capacidade
+    std::vector<int> genesCorrigidos = repararCVRP(filho);
+    if(genesCorrigidos.empty()){
+        return pai1;
+    }
+    return Individuo(genesCorrigidos, calcularFitness(genesCorrigidos));
+}
+
+
+Individuo GeneticAlgorithm::crossoverPMX(const Individuo &pai1, const Individuo &pai2, std::mt19937 &geradorLocal) {
+    // 1. Extrair apenas os clientes (sem os 0s)
+    std::vector<int> clientes1, clientes2;
+    for (int g : pai1.genes) if (g != 0) clientes1.push_back(g);
+    for (int g : pai2.genes) if (g != 0) clientes2.push_back(g);
+
+    int n = clientes1.size();
+    std::vector<int> filho(n, -1);
+
+    // 2. Sorteia dois pontos de corte
+    std::uniform_int_distribution<int> dist(0, n - 1);
+    int c1 = dist(geradorLocal);
+    int c2 = dist(geradorLocal);
+    if (c1 > c2) std::swap(c1, c2);
+
+    // 3. Copiar segmento do pai1 para o filho
+    for (int i = c1; i <= c2; i++) {
+        filho[i] = clientes1[i];
+    }
+
+    // 4. Mapear genes do pai2 → preencher conflitos
+    for (int i = c1; i <= c2; i++) {
+        int gene = clientes2[i];
+        if (std::find(filho.begin(), filho.end(), gene) == filho.end()) {
+            int pos = i;
+            while (filho[pos] != -1) {
+                int gene_p1 = clientes1[pos];
+                pos = std::find(clientes2.begin(), clientes2.end(), gene_p1) - clientes2.begin();
+            }
+            filho[pos] = gene;
+        }
+    }
+
+    // 5. Preencher os espaços vazios restantes com genes do pai2
+    for (int i = 0; i < n; i++) {
+        if (filho[i] == -1) {
+            filho[i] = clientes2[i];
+        }
+    }
+
+    // 6. Reconstruir cromossomo válido via reparador
+    std::vector<int> cromossomo = repararCVRP(filho); 
+
+    Individuo novo;
+    novo.genes = cromossomo;
+    novo.fitness = calcularFitness(cromossomo);
+
+    return novo;
+}
+
 Individuo GeneticAlgorithm::crossoverCVRP(const Individuo &pai1, const Individuo &pai2, std::mt19937 &geradorLocal) {
     auto rotas_pai1 = extrairRotas(pai1.genes);
     auto rotas_pai2 = extrairRotas(pai2.genes);
@@ -298,11 +479,6 @@ Individuo GeneticAlgorithm::crossoverCVRP(const Individuo &pai1, const Individuo
     return filho;
 }
 
-
-// REMOVIDO: crossoverOX e mutacao antiga
-// Individuo GeneticAlgorithm::crossoverOX(...)
-// void GeneticAlgorithm::mutacao(...)
-
 // =====================
 // Funções de migração (podem ser mantidas como estão)
 // =====================
@@ -354,7 +530,7 @@ void GeneticAlgorithm::executarGeracao(Island &ilha, std::uniform_real_distribut
     for (int i = 0; i < numFilhos; ++i) {
         auto pais = selecao(ilha.populacao, ilha.geradorlocal);
         // ALTERADO: Chamando os operadores corretos de CVRP
-        Individuo prole = crossoverCVRP(pais[0], pais[1], ilha.geradorlocal);
+        Individuo prole = crossoverOX(pais[0], pais[1], ilha.geradorlocal);
         if (distLocal(ilha.geradorlocal) < probMutacao)
             mutacaoCVRP(prole, ilha.geradorlocal);
         novaPop.push_back(prole);
@@ -382,7 +558,8 @@ void GeneticAlgorithm::realizarMigracao(vetorIslands &islands) {
 
 void GeneticAlgorithm::executarAlgoritmo() {
     std::uniform_real_distribution<double> distLocal(0, 1);
-    std::vector<Island> islands = criarMalha(numInslands, seed);
+    Topologia topologia;
+    auto islands = topologia.criarTopologia(TipoTopologia::Anel,numInslands,seed);
 
     std::cout << "Gerando população inicial..." << std::endl;
     // ALTERADO: Chamando a função de geração correta (agora renomeada)

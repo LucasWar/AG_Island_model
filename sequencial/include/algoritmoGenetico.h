@@ -13,7 +13,7 @@ private:
     float probMutacao,tamElite,numMigracao;
     CVRPData dataCVRP;
 
-    std::string topologia;
+    std::string opcTopologia;
     std::uint64_t seed;
     std::vector<std::vector<double>> matrizDeCaminhos;
     vectorIndiviudos populacao;
@@ -26,6 +26,7 @@ private:
     
     void mutacao(Individuo &individuo,std::mt19937 &geradorLocal);
     Individuo crossoverOX(const Individuo &pai1, const Individuo &pai2,std::mt19937 &geradorLocal);
+    Individuo crossoverPMX(const Individuo &pai1, const Individuo &pai2, std::mt19937 &geradorLocal);
 
     vectorIndiviudos selecionarMigrantesUnicos(const std::vector<Individuo>& populacao, std::mt19937& gerador);
     void realizarMigracao(vetorIslands &islands);
@@ -38,8 +39,10 @@ private:
     Individuo crossoverCVRP(const Individuo &pai1, const Individuo &pai2, std::mt19937 &geradorLocal);
     void mutacaoCVRP(Individuo &ind, std::mt19937 &geradorLocal);
     double calcularFitness(const std::vector<int> &rota) const;
+
+    std::vector<int> repararCVRP(const std::vector<int>& clientes);
 public:
-    GeneticAlgorithm(int numGeracoes, float probMutacao, int tamPopulacao,float tamElite, const std::string& caminhoArquivo, std::uint64_t seed, int numInslands,float numMigracao,std::string topologia,int freqMigracao);
+    GeneticAlgorithm(int numGeracoes, float probMutacao, int tamPopulacao,float tamElite, const std::string& caminhoArquivo, std::uint64_t seed, int numInslands,float numMigracao,std::string opcTopologia,int freqMigracao);
     void gerarPopulacao(vetorIslands &islands);
     vectorIndiviudos selecionarElite(vectorIndiviudos &atualPopulacao);
     void executarAlgoritmo();

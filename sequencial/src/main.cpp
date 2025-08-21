@@ -9,10 +9,10 @@
 #define PROB_MUTACAO    0.2
 #define TAM_POPULCAO    200
 #define TAM_ELITE       0.15
-#define NUM_ISLANDS     8
+#define NUM_ISLANDS     5
 #define FREQ_MIGRACAO   150
-#define NUM_MIGRACAO    0.25
-#define TOPOLOGIA       "Malha" //["Malha","Anel","Aleatoria"]
+#define NUM_MIGRACAO    0.1
+#define TOPOLOGIA       "Anel" //["Malha","Anel","Aleatoria"]
 
 int main() {
     int numExecucoes = 10;

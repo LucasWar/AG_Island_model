@@ -1,19 +1,18 @@
 #include "Topologia.h"
+#include "Individuo.h"
+#include "cvrpData.h"
+#include "Island.h"
 #include <vector>
 #include <string>
-#include "Individuo.h"
 #include <random>
-#include "Island.h"
-#include "cvrpData.h"
 
-std::vector<Island> Topologia::criarTopologia(TipoTopologia tipo, int numIlhas, int seed) {
-    switch (tipo) {
-        case TipoTopologia::Malha:
-            return criarMalha(numIlhas, seed);
-        case TipoTopologia::Anel:
-            return criarAnel(numIlhas, seed);
-        default:
-            return {};
+std::vector<Island> Topologia::criarTopologia(std::string opcTopologia, int numIlhas, int seed) {
+    if (opcTopologia == "Malha") {
+        return criarMalha(numIlhas, seed);
+    } else if (opcTopologia == "Anel") {
+        return criarAnel(numIlhas, seed);
+    } else {
+        return {};
     }
 }
 
@@ -34,14 +33,13 @@ std::vector<Island> Topologia::criarMalha(int numIlhas, int seed) {
         int linha = ilha.idIlha / numCols;
         int coluna = ilha.idIlha % numCols;
 
-        // cima
         if (linha > 0) ilha.vizinhos.push_back((linha - 1) * numCols + coluna);
-        // baixo
+
         if ((linha + 1) * numCols + coluna < numIlhas) 
             ilha.vizinhos.push_back((linha + 1) * numCols + coluna);
-        // esquerda
+       
         if (coluna > 0) ilha.vizinhos.push_back(linha * numCols + (coluna - 1));
-        // direita
+        
         if (coluna < numCols - 1 && id + 1 < numIlhas) 
             ilha.vizinhos.push_back(linha * numCols + (coluna + 1));
 

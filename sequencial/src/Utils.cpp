@@ -151,3 +151,13 @@ CVRPData lerArquivoVRP(const std::string& caminhoArquivo) {
     CVRPData dados{distancias, demandas, capacidade, deposito, numVeiculos};
     return dados;
 }
+
+void printVector(const std::vector<int>& vec, const std::string& label) {
+    if (!label.empty()) std::cout << label << ": ";
+    std::cout << "[ ";
+    for (size_t i = 0; i < vec.size(); ++i) {
+        std::cout << vec[i];
+        if (i < vec.size() - 1) std::cout << ", ";
+    }
+    std::cout << " ]\n";
+}

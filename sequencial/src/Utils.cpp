@@ -75,6 +75,7 @@ CVRPData lerArquivoVRP(const std::string& caminhoArquivo) {
     int dimension = 0;
     int capacidade = 0;
     int numVeiculos = 1;
+    int solucaoOtima = 0;
     std::vector<std::pair<double, double>> coordenadas;
     std::vector<int> demandas;
     int deposito = -1;
@@ -88,6 +89,9 @@ CVRPData lerArquivoVRP(const std::string& caminhoArquivo) {
         }
         else if (linha.find("TRUCKS") != std::string::npos) {
             numVeiculos = std::stoi(linha.substr(linha.find(":") + 1));
+        }
+        else if (linha.find("OPTIMAL") != std::string::npos) {
+            solucaoOtima = std::stoi(linha.substr(linha.find(":") + 1));
         }
         else if (linha.find("CAPACITY") != std::string::npos) {
             capacidade = std::stoi(linha.substr(linha.find(":") + 1));
@@ -148,7 +152,7 @@ CVRPData lerArquivoVRP(const std::string& caminhoArquivo) {
         }
     }
 
-    CVRPData dados{distancias, demandas, capacidade, deposito, numVeiculos};
+    CVRPData dados{distancias, demandas, capacidade, deposito, numVeiculos, solucaoOtima};
     return dados;
 }
 
@@ -160,4 +164,48 @@ void printVector(const std::vector<int>& vec, const std::string& label) {
         if (i < vec.size() - 1) std::cout << ", ";
     }
     std::cout << " ]\n";
+}
+
+
+bool verificarValidadeCVRP(const std::vector<int> &genes, CVRPData dataCVRP){
+    if (genes.size() < 3) return false; // mínimo: 0, cliente, 0
+
+    int veiculosUsados = 0;
+    double cargaAtual = 0.0;
+    std::vector<bool> clientesAtendidos(dataCVRP.distancias.size(), false);
+
+    for (int gene : genes) {
+        if (gene == 0) {
+            if (cargaAtual > 0) {
+                veiculosUsados++;
+                cargaAtual = 0.0;
+            }
+        } else {
+            if (gene < 0 || gene >= dataCVRP.distancias.size()) return false; // cliente inválido
+            if (clientesAtendidos[gene]) return false; // cliente duplicado
+            clientesAtendidos[gene] = true;
+
+            cargaAtual += dataCVRP.demandas[gene];
+            if (cargaAtual > dataCVRP.capacidade) return false; // capacidade estourada
+        }
+    }
+
+    // Número de veículos não pode ultrapassar o limite
+    if (veiculosUsados > dataCVRP.numVeiculos) return false;
+
+    // Verifica se todos os clientes foram atendidos
+    for (size_t c = 1; c < dataCVRP.distancias.size(); ++c) { // 0 = depósito
+        if (!clientesAtendidos[c]) return false;
+    }
+
+    return true; // passou em todas as verificações
+}
+
+
+size_t hashGenes(const std::vector<int>& genes) {
+    size_t seed = genes.size();
+    for (int g : genes) {
+        seed ^= std::hash<int>()(g) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+    }
+    return seed;
 }

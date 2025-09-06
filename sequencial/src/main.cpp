@@ -3,24 +3,27 @@
 #include <chrono>
 #include <iostream>
 #include <omp.h>
+#include <windows.h>
 
-#define ARQUIVO_ENTRADA "entradas/B-n78-k10.txt"
+#define ARQUIVO_ENTRADA "entradas/E-n101-k8.txt"
 #define NUMERO_GERACOES 3000
 #define PROB_MUTACAO    0.2
-#define TAM_POPULCAO    200
-#define TAM_ELITE       0.15
-#define NUM_ISLANDS     1
-#define FREQ_MIGRACAO   200
-#define NUM_MIGRACAO    0.1
-#define TOPOLOGIA       "Anel" //["Malha","Anel","Aleatoria"]
-#define SELECAO         "Roleta"
-#define CROSSOVER       "OX"
+#define TAM_POPULCAO    60
+#define TAM_ELITE       0.05
+#define NUM_ISLANDS     5
+#define FREQ_MIGRACAO   40
+#define NUM_MIGRACAO    0.2
+#define TOPOLOGIA       "Malha"    
+#define SELECAO         "Roleta"  
+#define CROSSOVER       "PMX"      
 
 int main() {
-    int numExecucoes = 10;
+    SetConsoleOutputCP(CP_UTF8);
+    int numExecucoes = 1;
     int seedSize = 18;
 
     for(int i = 0; i < numExecucoes; i++){
+        std::cout << "Execucao N° " << i + 1 << std::endl;
         std::uint64_t seed = lerArquivoSeed("pi.txt",i*seedSize,(i + 1)*seedSize);
         GeneticAlgorithm ga(
             NUMERO_GERACOES, 
@@ -32,14 +35,12 @@ int main() {
             NUM_ISLANDS,
             NUM_MIGRACAO,
             TOPOLOGIA,
+            CROSSOVER,
             FREQ_MIGRACAO);
-        auto inicio = std::chrono::high_resolution_clock::now();
+        
         ga.executarAlgoritmo();
-        auto fim = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> duracao = fim - inicio;
-        std::cout << "Semente enviada " << seed << std::endl;
-        std::cout << "\nTempo de execucao: " << duracao.count() << " segundos\n";
-
+        std::cout << std::endl;
+        std::cout << std::endl;
     }
    
     return 0;

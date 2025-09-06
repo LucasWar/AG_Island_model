@@ -11,3 +11,5 @@ std::vector<Island> criarMalha(int numIslands, int seed);
 std::vector<Island> criarAnel(int numIlhas, int seed);
 CVRPData lerArquivoVRP(const std::string& caminhoArquivo);
 void printVector(const std::vector<int>& vec, const std::string& label = "");
+bool verificarValidadeCVRP(const std::vector<int> &genes, CVRPData dataCVRP);
+size_t hashGenes(const std::vector<int>& genes);

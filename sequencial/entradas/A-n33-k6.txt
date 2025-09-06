@@ -1,5 +1,6 @@
 NAME : A-n33-k6
 COMMENT : (Augerat et al, No of trucks: 6, Optimal value: 742)
+OPTIMAL : 742
 TRUCKS : 6
 TYPE : CVRP
 DIMENSION : 33

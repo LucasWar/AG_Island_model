@@ -57,6 +57,7 @@
         "typeinfo": "cpp",
         "variant": "cpp",
         "list": "cpp",
-        "map": "cpp"
+        "map": "cpp",
+        "cstdarg": "cpp"
     }
 }

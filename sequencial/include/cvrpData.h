@@ -8,4 +8,5 @@ struct CVRPData {
     int capacidade;                              // capacidade dos veículos
     int deposito;                                // nó do depósito
     int numVeiculos;
+    int solucaoOtima;
 };

@@ -1,17 +1,9 @@
 #include "algoritmoGenetico.h"
-#include "Topologia.h"
-#include "utils.h"
 #include "cvrpData.h"
-#include <iostream>
-#include <algorithm>
-#include <chrono>
-#include <unordered_set>
-#include <numeric>
-#include <cmath>
-#include <list>
-#include <map>
+#include "Utils.h"
 
-std::vector<int> GeneticAlgorithm::repararCVRP(const std::vector<int>& clientes) {
+
+std::vector<int> repararCVRP(const std::vector<int>& clientes, CVRPData dataCVRP) {
     // --- FASE 1: CONSTRUÇÃO GULOSA (GARANTE CAPACIDADE) ---
     std::vector<std::vector<int>> rotas;
     std::vector<double> cargas;

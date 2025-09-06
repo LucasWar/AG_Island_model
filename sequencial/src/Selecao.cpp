@@ -22,8 +22,8 @@ vectorIndiviudos GeneticAlgorithm::selecao(vectorIndiviudos &populacao, std::mt1
 
     while (pais.size() < 2) {
         vectorIndiviudos candidatos;
-        candidatos.reserve(4);
-        for (int i = 0; i < 4; ++i)
+        candidatos.reserve(2);
+        for (int i = 0; i < 2; ++i)
             candidatos.push_back(populacao[dist(geradorLocal)]);
 
         auto melhor = *std::min_element(candidatos.begin(), candidatos.end(),
@@ -58,12 +58,11 @@ void GeneticAlgorithm::executarGeracao(Island &ilha, std::uniform_real_distribut
     for (int i = 0; i < numFilhos; ++i) {
         auto pais = selecao(ilha.populacao, ilha.geradorlocal);
         // ALTERADO: Chamando os operadores corretos de CVRP
-        Individuo prole = crossoverOX(pais[0], pais[1], ilha.geradorlocal);
+        Individuo prole = crossoverStrategy->aplicar(pais[0], pais[1], ilha.geradorlocal, dataCVRP);
         if (distLocal(ilha.geradorlocal) < probMutacao)
             mutacaoCVRP(prole, ilha.geradorlocal);
         novaPop.push_back(prole);
     }
-
     novaPop.insert(novaPop.end(), elite.begin(), elite.end());
     ilha.populacao = std::move(novaPop);
 }

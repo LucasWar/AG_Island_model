@@ -1,6 +1,7 @@
 #include "algoritmoGenetico.h"
+#include "cvrpData.h"
 
-double GeneticAlgorithm::calcularFitness(const std::vector<int> &rota){
+int calcularFitness(const std::vector<int> &rota, CVRPData dataCVRP){
     double soma = 0.0;
     if (rota.size() < 2) return 1e9; // Rota inválida
 
@@ -14,5 +15,5 @@ double GeneticAlgorithm::calcularFitness(const std::vector<int> &rota){
         
         soma += dataCVRP.distancias[atual][prox];
     }
-    return soma;
+    return (int)soma;
 }

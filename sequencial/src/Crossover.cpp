@@ -6,7 +6,6 @@
 #include <unordered_set>
 #include <list>
 
-
 std::vector<std::vector<int>> GeneticAlgorithm::extrairRotas(const std::vector<int>& genes) {
     std::vector<std::vector<int>> rotas;
     if (genes.empty()) return rotas;

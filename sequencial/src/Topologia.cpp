@@ -56,7 +56,7 @@ std::vector<Island> Topologia::criarAnel(int numIlhas, int seed) {
         if(ilha.idIlha != numIlhas){
             ilha.vizinhos.push_back(ilha.idIlha + 1);
         }else{
-            ilha.vizinhos.push_back(0);
+            ilha.vizinhos.push_back(1);
         }
     
         ilhas.push_back(ilha);

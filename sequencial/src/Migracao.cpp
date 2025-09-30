@@ -31,26 +31,14 @@ void GeneticAlgorithm::migracaoPopulacao(vectorIndiviudos &populacao, const vect
     if (k == 0 || populacao.empty()) return;
 
     if (k > populacao.size()) k = populacao.size();
+
+    // Ordena população para trazer os piores para frente
     std::partial_sort(populacao.begin(), populacao.begin() + k, populacao.end(),
-                      [](const Individuo &a, const Individuo &b){ return a.fitness > b.fitness; });
+                      [](const Individuo &a, const Individuo &b){ return a.fitness < b.fitness; });
 
     for (int i = 0; i < k; ++i)
         populacao[i] = selecionados[i];
 }
-
-// void GeneticAlgorithm::realizarMigracao(vetorIslands &islands) {
-//     for (auto &ilhaOrigem : islands) {
-//         auto selecionados = selecionarMigrantesUnicos(ilhaOrigem.populacao, ilhaOrigem.geradorlocal);
-//         for (int vizinhoId : ilhaOrigem.vizinhos) {
-//             auto it = std::find_if(islands.begin(), islands.end(),
-//                                      [vizinhoId](const Island &il){ return il.idIlha == vizinhoId; });
-//             if (it != islands.end())
-//                 migracaoPopulacao(it->populacao, selecionados);
-//         }
-//     }
-// }
-
-
 
 vectorIndiviudos GeneticAlgorithm::selecionarMigrantes_Torneio(const vectorIndiviudos &populacao, std::mt19937 &gerador, int tamanhoTorneio) {
     if (populacao.empty()) {
@@ -59,29 +47,23 @@ vectorIndiviudos GeneticAlgorithm::selecionarMigrantes_Torneio(const vectorIndiv
 
     vectorIndiviudos selecionados;
     std::unordered_set<size_t> hashesVistos;
-
     std::uniform_int_distribution<int> dist(0, populacao.size() - 1);
-
-    // Variáveis de controle para evitar loop infinito
-    const int LIMITE_TENTATIVAS_SEM_SUCESSO = populacao.size() * 2; // Um limite razoável
+    const int LIMITE_TENTATIVAS_SEM_SUCESSO = populacao.size() * 2;
     int tentativasSemSucesso = 0;
 
     while (selecionados.size() < tamMigracao && selecionados.size() < populacao.size()) {
-        
-        // Condição de saída de emergência
         if (tentativasSemSucesso > LIMITE_TENTATIVAS_SEM_SUCESSO) {
-            // Opcional: imprimir um aviso de que não foi possível encontrar a quantidade desejada de migrantes únicos.
-            // std::cout << "Aviso: Não foi possível encontrar " << tamMigracao << " migrantes únicos. Retornando " << selecionados.size() << ".\n";
             break; 
         }
 
         int indiceVencedor = -1;
-        double melhorFitness = -1.0; 
+        // Iniciar com um valor muito alto para garantir que o primeiro seja selecionado
+        double melhorFitness = std::numeric_limits<double>::max(); 
 
         for (int i = 0; i < tamanhoTorneio; ++i) {
             int indiceCompetidor = dist(gerador);
-            // IMPORTANTE: Adicionar verificação para evitar acesso fora dos limites se a população for pequena.
-            if (populacao[indiceCompetidor].fitness > melhorFitness) {
+            // CONDIÇÃO CORRIGIDA: usa '<' para minimização
+            if (populacao[indiceCompetidor].fitness < melhorFitness) {
                 melhorFitness = populacao[indiceCompetidor].fitness;
                 indiceVencedor = indiceCompetidor;
             }
@@ -94,12 +76,12 @@ vectorIndiviudos GeneticAlgorithm::selecionarMigrantes_Torneio(const vectorIndiv
             if (hashesVistos.find(h) == hashesVistos.end()) {
                 hashesVistos.insert(h);
                 selecionados.push_back(vencedor);
-                tentativasSemSucesso = 0; // Reseta o contador no sucesso
+                tentativasSemSucesso = 0;
             } else {
-                tentativasSemSucesso++; // Incrementa o contador na falha
+                tentativasSemSucesso++;
             }
         } else {
-             tentativasSemSucesso++; // Se nenhum vencedor for encontrado (improvável, mas seguro)
+            tentativasSemSucesso++;
         }
     }
     return selecionados;
@@ -107,28 +89,57 @@ vectorIndiviudos GeneticAlgorithm::selecionarMigrantes_Torneio(const vectorIndiv
 
 
 void GeneticAlgorithm::realizarMigracao_Aprimorada(vetorIslands &islands) {
-    const int TAMANHO_TORNEIO = 3; // Um bom valor padrão
+    const int TAMANHO_TORNEIO = 3;
 
-    if (islands.size() < 2) return; // Migração não faz sentido com menos de 2 ilhas
+    if (islands.size() < 2) return;
 
-    for (auto &ilhaOrigem : islands) {
-        // Para cada vizinho, selecionamos um novo e único conjunto de migrantes
+    // É mais eficiente criar uma lista de migrantes por ilha primeiro
+    std::vector<vectorIndiviudos> migrantesPorIlha(islands.size());
+
+    for (size_t i = 0; i < islands.size(); ++i) {
+        // Seleciona os melhores para migrar (usando a função corrigida)
+        migrantesPorIlha[i] = selecionarMigrantes_Torneio(islands[i].populacao, islands[i].geradorlocal, TAMANHO_TORNEIO);
+    }
+
+    for (size_t i = 0; i < islands.size(); ++i) {
+        Island &ilhaOrigem = islands[i];
         for (int vizinhoId : ilhaOrigem.vizinhos) {
-            
-            // Passo 1: Selecionar migrantes de alta qualidade da ilha de origem
-            auto selecionados = selecionarMigrantes_Torneio(ilhaOrigem.populacao, ilhaOrigem.geradorlocal, TAMANHO_TORNEIO);
-            
-            if (selecionados.empty()) continue; // Nenhum migrante selecionado
-
-            // Passo 2: Encontrar a ilha de destino
             auto it_destino = std::find_if(islands.begin(), islands.end(),
-                                       [vizinhoId](const Island &il) { return il.idIlha == vizinhoId; });
+                                           [vizinhoId](const Island &il) { return il.idIlha == vizinhoId; });
             
-            // Passo 3: Inserir os migrantes na ilha de destino (substituindo os piores)
             if (it_destino != islands.end()) {
-                migracaoPopulacao(it_destino->populacao, selecionados);
+                Island &ilhaDestino = *it_destino;
+                const auto& migrantes = migrantesPorIlha[i]; // Migrantes da ilha de origem
+
+                if (migrantes.empty()) continue;
+
+                // Ordena a população de destino para que os PIORES fiquem no final
+                std::sort(ilhaDestino.populacao.begin(), ilhaDestino.populacao.end(),
+                          [](const Individuo& a, const Individuo& b) { return a.fitness < b.fitness; });
+                
+                // Cria um hashset dos genes existentes para evitar duplicatas
+                std::unordered_set<size_t> hashesDestino;
+                for(const auto& ind : ilhaDestino.populacao) {
+                    hashesDestino.insert(hashGenes(ind.genes));
+                }
+
+                int indicePior = ilhaDestino.populacao.size() - 1;
+                
+                // Itera sobre os migrantes e substitui os piores indivíduos
+                for (const auto& migrante : migrantes) {
+                    // Se o pior indivíduo já foi substituído, paramos
+                    if (indicePior < 0) break;
+
+                    size_t hMigrante = hashGenes(migrante.genes);
+                    if (hashesDestino.find(hMigrante) == hashesDestino.end()) {
+                        // Substitui o pior, atualiza o hashset e move para o próximo pior
+                        hashesDestino.erase(hashGenes(ilhaDestino.populacao[indicePior].genes));
+                        ilhaDestino.populacao[indicePior] = migrante;
+                        hashesDestino.insert(hMigrante);
+                        indicePior--;
+                    }
+                }
             }
         }
     }
-    
 }

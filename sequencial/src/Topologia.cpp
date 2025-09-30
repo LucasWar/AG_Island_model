@@ -43,7 +43,7 @@ std::vector<Island> Topologia::criarMalha(int numIlhas, int seed) {
         if (coluna < numCols - 1 && id + 1 < numIlhas) 
             ilha.vizinhos.push_back(linha * numCols + (coluna + 1));
 
-        ilhas.push_back(ilha);
+        ilhas.push_back(std::move(ilha));
     }
     Island::nextId = 1;
     return ilhas;
@@ -59,7 +59,7 @@ std::vector<Island> Topologia::criarAnel(int numIlhas, int seed) {
             ilha.vizinhos.push_back(1);
         }
     
-        ilhas.push_back(ilha);
+        ilhas.push_back(std::move(ilha));
     }
     Island::nextId = 1;
 

@@ -3,11 +3,22 @@
 #include <cmath>
 #include <random>
 #include "Individuo.h"
+#include <memory>
+#include "Crossover.h"
 
 struct Island {
     static int nextId;          // declaração apenas
     int idIlha;
     int seed;
+
+    bool usaBuscaLocal = false;
+
+    std::string tipoSelecao;
+
+    float proMutacao;
+    std::unique_ptr<ICrossover> crossoverisland; 
+    
+
     std::vector<int> vizinhos;
     std::vector<Individuo> populacao;
     Individuo melhorIndividuoIlhaa;

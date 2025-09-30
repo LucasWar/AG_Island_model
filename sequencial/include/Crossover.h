@@ -32,3 +32,11 @@ public:
                              std::mt19937 &geradorLocal,
                              const CVRPData &dataCVRP) override;
 };
+
+class RBXCrossover : public ICrossover {
+public:
+    Individuo aplicar(const Individuo &pai1,
+                             const Individuo &pai2,
+                             std::mt19937 &geradorLocal,
+                             const CVRPData &dataCVRP) override;
+};

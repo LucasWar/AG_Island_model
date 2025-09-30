@@ -14,7 +14,7 @@
 typedef std::vector<Individuo> vectorIndiviudos;
 typedef std::vector<Island> vetorIslands;
 
-vectorIndiviudos GeneticAlgorithm::selecao(vectorIndiviudos &populacao, std::mt19937 &geradorLocal) {
+vectorIndiviudos GeneticAlgorithm::selecaoTorneio(vectorIndiviudos &populacao, std::mt19937 &geradorLocal) {
     // A seleção por torneio está correta e pode ser mantida.
     std::uniform_int_distribution<int> dist(0, populacao.size() - 1);
     vectorIndiviudos pais;
@@ -36,6 +36,30 @@ vectorIndiviudos GeneticAlgorithm::selecao(vectorIndiviudos &populacao, std::mt1
     return pais;
 }
 
+
+
+vectorIndiviudos GeneticAlgorithm::selecaoRoleta(vectorIndiviudos& populacao, std::mt19937& gen) {
+    std::vector<Individuo> pais(2);
+    double totalFitness = 0.0;
+    for (const auto& ind : populacao)
+        totalFitness += 1.0 / ind.fitness; // quanto menor o fitness, melhor
+
+    std::uniform_real_distribution<double> dist(0.0, totalFitness);
+
+    for (int p = 0; p < 2; ++p) {
+        double r = dist(gen);
+        double acumulado = 0.0;
+        for (const auto& ind : populacao) {
+            acumulado += 1.0 / ind.fitness;
+            if (acumulado >= r) {
+                pais[p] = ind;
+                break;
+            }
+        }
+    }
+    return pais;
+}
+
 vectorIndiviudos GeneticAlgorithm::selecionarElite(vectorIndiviudos &populacao){
     // O elitismo também está correto e pode ser mantido.
     vectorIndiviudos copia = populacao;
@@ -48,21 +72,38 @@ vectorIndiviudos GeneticAlgorithm::selecionarElite(vectorIndiviudos &populacao){
 }
 
 void GeneticAlgorithm::executarGeracao(Island &ilha, std::uniform_real_distribution<double> &distLocal) {
-    if (ilha.populacao.empty()) return; // Guarda de segurança
+    if (ilha.populacao.empty()) return;
 
     vectorIndiviudos elite = selecionarElite(ilha.populacao);
+    
+    // Pequena otimização: evite alocar memória se não precisar de filhos
+    if (elite.size() >= tamPopulacao) {
+        ilha.populacao = elite;
+        return;
+    }
+
     int numFilhos = tamPopulacao - elite.size();
     vectorIndiviudos novaPop;
-    novaPop.reserve(tamPopulacao);
+    novaPop.reserve(tamPopulacao); // Reserva o espaço total
 
+    // Adiciona a elite primeiro
+    novaPop.insert(novaPop.end(), elite.begin(), elite.end());
+
+    // Gera os filhos para preencher o resto
     for (int i = 0; i < numFilhos; ++i) {
-        auto pais = selecao(ilha.populacao, ilha.geradorlocal);
-        // ALTERADO: Chamando os operadores corretos de CVRP
-        Individuo prole = crossoverStrategy->aplicar(pais[0], pais[1], ilha.geradorlocal, dataCVRP);
-        if (distLocal(ilha.geradorlocal) < probMutacao)
+        auto pais = (ilha.tipoSelecao == "Roleta") ?
+                    selecaoRoleta(ilha.populacao, ilha.geradorlocal) :
+                    selecaoTorneio(ilha.populacao, ilha.geradorlocal);
+        
+        Individuo prole = ilha.crossoverisland->aplicar(pais[0], pais[1], ilha.geradorlocal, dataCVRP);
+        
+        // CONDIÇÃO CORRIGIDA: usa a taxa de mutação da ilha
+        if (distLocal(ilha.geradorlocal) < ilha.proMutacao) { 
             mutacaoCVRP(prole, ilha.geradorlocal);
+        }
+        
         novaPop.push_back(prole);
     }
-    novaPop.insert(novaPop.end(), elite.begin(), elite.end());
+    
     ilha.populacao = std::move(novaPop);
 }

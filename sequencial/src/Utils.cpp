@@ -6,6 +6,9 @@
 #include <sstream>
 #include <filesystem>
 
+#define TRUE
+#define FALSE
+
 namespace fs = std::filesystem;
 
 std::vector<std::vector<double>> lerArquivo(const std::string& caminhoArquivo) {
@@ -181,24 +184,24 @@ bool verificarValidadeCVRP(const std::vector<int> &genes, CVRPData dataCVRP){
                 cargaAtual = 0.0;
             }
         } else {
-            if (gene < 0 || gene >= dataCVRP.distancias.size()) return false; // cliente inválido
-            if (clientesAtendidos[gene]) return false; // cliente duplicado
+            if (gene < 0 || gene >= dataCVRP.distancias.size()) return 0; // cliente inválido
+            if (clientesAtendidos[gene]) return 0; // cliente duplicado
             clientesAtendidos[gene] = true;
 
             cargaAtual += dataCVRP.demandas[gene];
-            if (cargaAtual > dataCVRP.capacidade) return false; // capacidade estourada
+            if (cargaAtual > dataCVRP.capacidade) return 0; // capacidade estourada
         }
     }
 
     // Número de veículos não pode ultrapassar o limite
-    if (veiculosUsados > dataCVRP.numVeiculos) return false;
+    if (veiculosUsados > dataCVRP.numVeiculos) return 0;
 
     // Verifica se todos os clientes foram atendidos
     for (size_t c = 1; c < dataCVRP.distancias.size(); ++c) { // 0 = depósito
-        if (!clientesAtendidos[c]) return false;
+        if (!clientesAtendidos[c]) return 0;
     }
 
-    return true; // passou em todas as verificações
+    return 1; // passou em todas as verificações
 }
 
 

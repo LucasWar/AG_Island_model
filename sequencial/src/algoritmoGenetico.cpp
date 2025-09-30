@@ -18,13 +18,13 @@ GeneticAlgorithm::GeneticAlgorithm(int nGen, float pMut, int tPop, float nElite,
     tamIndividuo = dataCVRP.distancias.empty() ? 0 : dataCVRP.distancias.size(); 
 
 
-    if (opcCrossover == "OX")
-        crossoverStrategy = std::make_unique<OXCrossover>();
-    else if (opcCrossover == "PMX"){
-        crossoverStrategy = std::make_unique<PMXCrossover>();
-    }
-    else
-        throw std::invalid_argument("Tipo de crossover inválido: " + opcCrossover);
+    // if (opcCrossover == "OX")
+    //     crossoverStrategy = std::make_unique<OXCrossover>();
+    // else if (opcCrossover == "PMX"){
+    //     crossoverStrategy = std::make_unique<PMXCrossover>();
+    // }
+    // else
+    //     throw std::invalid_argument("Tipo de crossover inválido: " + opcCrossover);
 }
 
 Individuo GeneticAlgorithm::gerarIndividuoUnicoDiversificado(std::mt19937 &gerador) {
@@ -49,7 +49,7 @@ Individuo GeneticAlgorithm::gerarIndividuoUnicoDiversificado(std::mt19937 &gerad
 
 
 void GeneticAlgorithm::reiniciarPopulacoes(Island &ilha, int geracaoAtual) {
-    std::cout << "\n*** ESTAGNAÇÃO DETECTADA! REINICIANDO POPULAÇÕES PARCIALMENTE. Ilha: " << ilha.idIlha << ", Geração: " << geracaoAtual << " ***\n" << std::endl;
+    //std::cout << "\n*** ESTAGNAÇÃO DETECTADA! REINICIANDO POPULAÇÕES PARCIALMENTE. Ilha: " << ilha.idIlha << ", Geração: " << geracaoAtual << " ***\n" << std::endl;
     
     if (ilha.populacao.size() < 10) return; // Evita problemas com populações muito pequenas
 
@@ -131,13 +131,14 @@ Individuo GeneticAlgorithm::melhorIndividuo(vetorIslands &islands, int geracao) 
         auto it = std::min_element(island.populacao.begin(), island.populacao.end(),
                                      [](const Individuo& a, const Individuo& b) { return a.fitness < b.fitness; });
 
-        if(it->fitness < island.melhorIndividuoIlhaa.fitness){
+        if(it->fitness <= island.melhorIndividuoIlhaa.fitness and it->genes != island.melhorIndividuoIlhaa.genes){
             island.melhorIndividuoIlhaa = *it;
             island.geracaoUltimaEvolucao = geracao;
-        }else if(geracao - island.geracaoUltimaEvolucao >= island.resetNum){
-            island.resetNum += 100;
+        }else if(geracao - island.geracaoUltimaEvolucao >= 100){
             island.reset = true;
-            std::cout << island.resetNum << std::endl;
+            std::cout << "Estagnação detectada na ilha " << island.idIlha 
+                    << " (geracao: " << geracao 
+                    << ", ultima evolução: " << island.geracaoUltimaEvolucao << ")\n";
         }
 
         if (!inicializado || it->fitness < melhor.fitness) {
@@ -164,8 +165,32 @@ void GeneticAlgorithm::executarAlgoritmo() {
     int auxNumGerSemEvo = 0;
     int contadorReinicializacoes = 0; // NOVO: Para contar os restarts
     std::uniform_real_distribution<double> distLocal(0, 1);
+    std::uniform_real_distribution<double> probMutGerador(0.2, 0.6);
     Topologia topologia;
     auto islands = topologia.criarTopologia(opcTopologia,numInslands,seed);
+
+    for (auto &island : islands) {
+        island.proMutacao = probMutGerador(island.geradorlocal);
+
+        // Alternância forçada entre OX e PMX para diversidade
+       if (island.idIlha % 3 == 0) {
+            island.tipoSelecao = "Torneio";
+            island.proMutacao = 0.15;
+            island.crossoverisland = std::make_unique<PMXCrossover>();
+            island.usaBuscaLocal = true;
+        } else if (island.idIlha % 3 == 1) {
+            island.tipoSelecao = "Roleta";
+            island.proMutacao = 0.05;
+            island.crossoverisland = std::make_unique<OXCrossover>();
+            island.usaBuscaLocal = false;
+        } else {
+            island.tipoSelecao = "Elitista";
+            island.proMutacao = 0.25;
+            island.crossoverisland = std::make_unique<RBXCrossover>();
+            island.usaBuscaLocal = true;
+        }
+    }
+
     auto inicio = std::chrono::high_resolution_clock::now();
     std::cout << "Gerando população inicial..." << std::endl;
     gerarPopulacaoDiversificada(islands);
@@ -181,9 +206,6 @@ void GeneticAlgorithm::executarAlgoritmo() {
                 reiniciarPopulacoes(ilha,geracao);
                 ilha.reset = false;
             }
-        if(contadorReinicializacoes > 8){
-            break;
-        }
         for (auto &ilha : islands)
             executarGeracao(ilha, distLocal);
 
@@ -226,6 +248,6 @@ void GeneticAlgorithm::executarAlgoritmo() {
     }
     std::cout << "GAP de "<< classificar << std::endl;
     std::cout << "Numero maximo de geracoes sem evolucao: " << numGerSemEvo << std::endl;
-    
+    std::cout << "Solucão valida: " << verificarValidadeCVRP(melhor.genes,dataCVRP) << std::endl;
     std::cout << "===================================" << std::endl;
 }

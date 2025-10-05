@@ -15,7 +15,7 @@ private:
     int numGeracoes, tamPopulacao, numNovosIndividuos, tamIndividuo,numInslands,freqMigracao,tamMigracao;
     float probMutacao,tamElite,numMigracao;
     CVRPData dataCVRP;
-    std::string opcTopologia,opcCrossover;
+    std::string opcTopologia,opcCrossover, opcSelecao;
     std::uint64_t seed;
     std::vector<std::vector<double>> matrizDeCaminhos;
     std::unique_ptr<ICrossover> crossoverStrategy; 
@@ -58,8 +58,10 @@ private:
     Individuo gerarIndividuoUnicoDiversificado(std::mt19937 &gerador);
 
 public:
-    GeneticAlgorithm(int numGeracoes, float probMutacao, int tamPopulacao,float tamElite, const std::string& caminhoArquivo, std::uint64_t seed, int numInslands,float numMigracao,std::string opcTopologia,std::string opcCrossover,int freqMigracao);
+    GeneticAlgorithm(int numGeracoes, float probMutacao, int tamPopulacao,float tamElite, const std::string& caminhoArquivo, std::uint64_t seed, int numInslands,float numMigracao,std::string opcTopologia,int freqMigracao,std::string opcCrossover = "None", std::string opcSelecao = "None");
     void gerarPopulacao(vetorIslands &islands);
     vectorIndiviudos selecionarElite(vectorIndiviudos &atualPopulacao);
     void executarAlgoritmo();
+    void verificarEexecutarResgateColonial(vetorIslands &islands, int geracaoAtual);
+    double calcularDiversidade(const vectorIndiviudos &pop);
 };

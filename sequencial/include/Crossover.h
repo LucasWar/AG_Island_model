@@ -12,7 +12,8 @@ public:
     virtual Individuo aplicar(const Individuo &pai1,
                                      const Individuo &pai2,
                                      std::mt19937 &geradorLocal,
-                                     const CVRPData &dataCVRP) = 0;
+                                     const CVRPData &dataCVRP,
+                                     bool aplicar2opt) = 0;
 };
 
 // Implementação OX
@@ -21,7 +22,8 @@ public:
     Individuo aplicar(const Individuo &pai1,
                              const Individuo &pai2,
                              std::mt19937 &geradorLocal,
-                             const CVRPData &dataCVRP) override;
+                             const CVRPData &dataCVRP,
+                             bool aplicar2opt) override;
 };
 
 // Implementação PMX
@@ -30,7 +32,8 @@ public:
     Individuo aplicar(const Individuo &pai1,
                              const Individuo &pai2,
                              std::mt19937 &geradorLocal,
-                             const CVRPData &dataCVRP) override;
+                             const CVRPData &dataCVRP,
+                             bool aplicar2opt) override;
 };
 
 class RBXCrossover : public ICrossover {
@@ -38,5 +41,6 @@ public:
     Individuo aplicar(const Individuo &pai1,
                              const Individuo &pai2,
                              std::mt19937 &geradorLocal,
-                             const CVRPData &dataCVRP) override;
+                             const CVRPData &dataCVRP,
+                             bool aplicar2opt) override;
 };

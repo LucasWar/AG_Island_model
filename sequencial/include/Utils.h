@@ -13,3 +13,4 @@ CVRPData lerArquivoVRP(const std::string& caminhoArquivo);
 void printVector(const std::vector<int>& vec, const std::string& label = "");
 bool verificarValidadeCVRP(const std::vector<int> &genes, CVRPData dataCVRP);
 size_t hashGenes(const std::vector<int>& genes);
+void salvarResultados(const Individuo& melhor, int solucaoOtima, int duracao, int numGerSemEvo, const std::vector<int>& genes, const CVRPData& dataCVRP);

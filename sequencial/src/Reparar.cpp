@@ -31,13 +31,18 @@ void aplicar2Opt(std::vector<int>& rota, const std::vector<std::vector<double>>&
 // ----------------------------
 // Reparador CVRP otimizado
 // ----------------------------
-std::vector<int> repararCVRP(const std::vector<int>& clientes, CVRPData dataCVRP) {
+std::vector<int> repararCVRP(const std::vector<int>& clientes, CVRPData dataCVRP, bool aplicar2opt) {
     std::vector<std::vector<int>> rotas;
     std::vector<double> cargas;
 
     if (clientes.empty()) {
         return {0, 0};
     }
+
+    if(verificarValidadeCVRP(clientes,dataCVRP)){
+        return clientes;
+    }
+
     // ----------------------------
     // FASE 1: Construção GULOSA simples por capacidade
     // ----------------------------
@@ -108,10 +113,11 @@ std::vector<int> repararCVRP(const std::vector<int>& clientes, CVRPData dataCVRP
     // ----------------------------
     // FASE 3: Aplicar 2-opt em cada rota
     // ----------------------------
-    for (auto& rota : rotas) {
-        aplicar2Opt(rota, dataCVRP.distancias);
+    if(aplicar2opt){
+        for (auto& rota : rotas) {
+            aplicar2Opt(rota, dataCVRP.distancias);
+        }
     }
-
     // ----------------------------
     // FASE 4: Formatar saída com separadores (0)
     // ----------------------------

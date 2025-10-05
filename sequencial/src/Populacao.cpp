@@ -174,7 +174,7 @@ void GeneticAlgorithm::gerarPopulacaoDiversificada(vetorIslands &islands) {
                 continue; // O loop 'for' não incrementa 'i'
             }
             
-            genes = repararCVRP(genes,dataCVRP);
+            genes = repararCVRP(genes,dataCVRP,island.usaBuscaLocal);
 
             if(!genes.empty()){
                 Individuo ind(genes, calcularFitness(genes, dataCVRP));

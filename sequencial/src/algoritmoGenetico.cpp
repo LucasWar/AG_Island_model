@@ -12,8 +12,8 @@
 #include <algorithm>
 #include <list>
 
-GeneticAlgorithm::GeneticAlgorithm(int nGen, float pMut, int tPop, float nElite, const std::string& caminho,std::uint64_t seed, int numInslands,float numMigracao,std::string opcTopologia,std::string opcCrossover,int freqMigracao) 
-    :seed(seed),numGeracoes(nGen), probMutacao(pMut), tamPopulacao(tPop),numInslands(numInslands),opcTopologia(opcTopologia),opcCrossover(opcCrossover),freqMigracao(freqMigracao), tamMigracao(static_cast<int>(std::floor(numMigracao * tamPopulacao))), tamElite(static_cast<int>(std::floor(nElite * tamPopulacao))){
+GeneticAlgorithm::GeneticAlgorithm(int nGen, float pMut, int tPop, float nElite, const std::string& caminho,std::uint64_t seed, int numInslands,float numMigracao,std::string opcTopologia,int freqMigracao,std::string opcCrossover,std::string opcSelecao) 
+    :seed(seed),numGeracoes(nGen), probMutacao(pMut), tamPopulacao(tPop),numInslands(numInslands),opcTopologia(opcTopologia),opcCrossover(opcCrossover),opcSelecao(opcSelecao),freqMigracao(freqMigracao), tamMigracao(static_cast<int>(std::floor(numMigracao * tamPopulacao))), tamElite(static_cast<int>(std::floor(nElite * tamPopulacao))){
     dataCVRP = lerArquivoVRP(caminho);
     tamIndividuo = dataCVRP.distancias.empty() ? 0 : dataCVRP.distancias.size(); 
 
@@ -47,13 +47,12 @@ Individuo GeneticAlgorithm::gerarIndividuoUnicoDiversificado(std::mt19937 &gerad
     }
 }
 
-
 void GeneticAlgorithm::reiniciarPopulacoes(Island &ilha, int geracaoAtual) {
     //std::cout << "\n*** ESTAGNAÇÃO DETECTADA! REINICIANDO POPULAÇÕES PARCIALMENTE. Ilha: " << ilha.idIlha << ", Geração: " << geracaoAtual << " ***\n" << std::endl;
     
     if (ilha.populacao.size() < 10) return; // Evita problemas com populações muito pequenas
 
-    const double percentualMelhores = 0.01; // 5% de elite
+    const double percentualMelhores = 0.15; // 5% de elite
     const double percentualAleatorios = 0.15; // 10% de "sobreviventes aleatórios"
 
     size_t numMelhoresAPreservar = static_cast<size_t>(std::floor(tamPopulacao * percentualMelhores));
@@ -136,9 +135,7 @@ Individuo GeneticAlgorithm::melhorIndividuo(vetorIslands &islands, int geracao) 
             island.geracaoUltimaEvolucao = geracao;
         }else if(geracao - island.geracaoUltimaEvolucao >= 100){
             island.reset = true;
-            std::cout << "Estagnação detectada na ilha " << island.idIlha 
-                    << " (geracao: " << geracao 
-                    << ", ultima evolução: " << island.geracaoUltimaEvolucao << ")\n";
+            //std::cout << "Estagnação detectada na ilha " << island.idIlha << " (geracao: " << geracao  << ", ultima evolução: " << island.geracaoUltimaEvolucao << ")\n";
         }
 
         if (!inicializado || it->fitness < melhor.fitness) {
@@ -153,43 +150,23 @@ Individuo GeneticAlgorithm::melhorIndividuo(vetorIslands &islands, int geracao) 
 }
 
 void GeneticAlgorithm::executarAlgoritmo() {
-    std::cout << "Numero de ilhas: " << numInslands << std::endl;
-    std::cout << "Crossover selecionado: " << opcCrossover << std::endl;
-    std::cout << "Topologia Selecionada: "<< opcTopologia << std::endl;
-    std::cout << "Numero de individuos por ilha: "<< tamPopulacao << std::endl;
-    std::cout << "Numero de individuos para migração: "<< tamMigracao << std::endl;
-    std::cout << "Frequencia de migração: "<< freqMigracao << std::endl;
-    std::cout << "Preservação de elite: "<< tamElite << std::endl;
-
+    //std::cout << "Frequencia de migração: "<< freqMigracao << std::endl;
     int numGerSemEvo = 0;
     int auxNumGerSemEvo = 0;
-    int contadorReinicializacoes = 0; // NOVO: Para contar os restarts
+    int contadorReinicializacoes = 0; 
     std::uniform_real_distribution<double> distLocal(0, 1);
-    std::uniform_real_distribution<double> probMutGerador(0.2, 0.6);
     Topologia topologia;
-    auto islands = topologia.criarTopologia(opcTopologia,numInslands,seed);
-
-    for (auto &island : islands) {
-        island.proMutacao = probMutGerador(island.geradorlocal);
-
-        // Alternância forçada entre OX e PMX para diversidade
-       if (island.idIlha % 3 == 0) {
-            island.tipoSelecao = "Torneio";
-            island.proMutacao = 0.15;
-            island.crossoverisland = std::make_unique<PMXCrossover>();
-            island.usaBuscaLocal = true;
-        } else if (island.idIlha % 3 == 1) {
-            island.tipoSelecao = "Roleta";
-            island.proMutacao = 0.05;
-            island.crossoverisland = std::make_unique<OXCrossover>();
-            island.usaBuscaLocal = false;
-        } else {
-            island.tipoSelecao = "Elitista";
-            island.proMutacao = 0.25;
-            island.crossoverisland = std::make_unique<RBXCrossover>();
-            island.usaBuscaLocal = true;
-        }
+    std::cout << "==================================================TOPOLOGIA=========================================================" << std::endl;
+    auto islands = topologia.criarTopologia(opcTopologia,numInslands,seed,opcCrossover,opcSelecao);
+    if(islands.size() == 0){
+        throw std::runtime_error("Erro: Nenhuma ilha foi criada. Verifique os parâmetros da topologia.");
     }
+    std::cout << "Numero de individuos por ilha: "<< tamPopulacao << std::endl;
+    std::cout << "Preservação de elite: "<< tamElite << std::endl;
+
+    std::cout << "====================================================================================================================" <<  "\n" << std::endl;
+    
+    std::cout << "===================================================EXECUCAO=========================================================" <<  "\n" << std::endl;
 
     auto inicio = std::chrono::high_resolution_clock::now();
     std::cout << "Gerando população inicial..." << std::endl;
@@ -208,11 +185,15 @@ void GeneticAlgorithm::executarAlgoritmo() {
             }
         for (auto &ilha : islands)
             executarGeracao(ilha, distLocal);
-
-        if (geracao > 0 and (geracao % freqMigracao) == 0)   {
-            realizarMigracao_Aprimorada(islands);
+        
+        if(numInslands > 1){
+            std::uniform_real_distribution<double> probMigracao(0.0, 1.0);
+            for (auto &island : islands) {
+                if (probMigracao(island.geradorlocal) < 0.05) { // 5% chance por geração
+                    realizarMigracao_Aprimorada(islands);
+                }
+            }
         }
-            
         auto auxMelhor = melhorIndividuo(islands, geracao);
         
         if (auxMelhor.fitness < melhor.fitness) {
@@ -221,7 +202,7 @@ void GeneticAlgorithm::executarAlgoritmo() {
                 numGerSemEvo = auxNumGerSemEvo;
             }
             auxNumGerSemEvo = 0;
-            std::cout << "Geração " << geracao + 1 << " | Novo melhor fitness: " << melhor.fitness << std::endl;
+            //std::cout << "Geração " << geracao + 1 << " | Novo melhor fitness: " << melhor.fitness << std::endl;
         } else {
             auxNumGerSemEvo++;
         }
@@ -229,25 +210,26 @@ void GeneticAlgorithm::executarAlgoritmo() {
     }
     auto fim = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> duracao = fim - inicio;
-
-    std::cout << "\n===================================" << std::endl;
-    std::cout << "Evolução concluída!" << std::endl;
-    std::cout << "Melhor fitness final: " << melhor.fitness << std::endl;
-    std::cout << "Melhor fitness possivel: " << dataCVRP.solucaoOtima << std::endl;
-    std::cout << "Tempo de execução: " << duracao.count() << std::endl;
-    std::cout << "Melhor solução encontrada: ";
-    printVector(melhor.genes);
-    double classificar = ((double)(melhor.fitness - dataCVRP.solucaoOtima)/dataCVRP.solucaoOtima * 100 );
-    if(classificar >= 0 and classificar <= 5){
-        std::cout << "Solução encontrada considerada boa"<< std::endl;
-    } else if(classificar > 5 and classificar <= 8){
-        std::cout << "Solução encontrada considerada mediana"<< std::endl;
-    }
-    else{
-        std::cout << "Solução encontrada considerada ruim"<< std::endl;
-    }
-    std::cout << "GAP de "<< classificar << std::endl;
-    std::cout << "Numero maximo de geracoes sem evolucao: " << numGerSemEvo << std::endl;
-    std::cout << "Solucão valida: " << verificarValidadeCVRP(melhor.genes,dataCVRP) << std::endl;
-    std::cout << "===================================" << std::endl;
+    int teste = dataCVRP.solucaoOtima;
+    int duracao_s = std::chrono::duration_cast<std::chrono::seconds>(duracao).count();
+    salvarResultados(melhor, teste, duracao_s, numGerSemEvo, melhor.genes, dataCVRP);
+    // std::cout << "\n ===================================================RESULTADOS=========================================================" <<  "\n" << std::endl;
+    // std::cout << "Melhor fitness final: " << melhor.fitness << std::endl;
+    // std::cout << "Melhor fitness possivel: " << dataCVRP.solucaoOtima << std::endl;
+    // std::cout << "Tempo de execução: " << duracao.count() << std::endl;
+    // std::cout << "Melhor solução encontrada: ";
+    // printVector(melhor.genes);
+    // double classificar = ((double)(melhor.fitness - dataCVRP.solucaoOtima)/dataCVRP.solucaoOtima * 100 );
+    // if(classificar >= 0 and classificar <= 5){
+    //     std::cout << "Solução encontrada considerada boa"<< std::endl;
+    // } else if(classificar > 5 and classificar <= 8){
+    //     std::cout << "Solução encontrada considerada mediana"<< std::endl;
+    // }
+    // else{
+    //     std::cout << "Solução encontrada considerada ruim"<< std::endl;
+    // }
+    // std::cout << "GAP de "<< classificar << std::endl;
+    // std::cout << "Numero maximo de geracoes sem evolucao: " << numGerSemEvo << std::endl;
+    // std::cout << "Solucão valida: " << verificarValidadeCVRP(melhor.genes,dataCVRP) << std::endl;
+    // std::cout << "====================================================================================================================" <<  "\n" << std::endl;
 }

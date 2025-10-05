@@ -5,6 +5,7 @@
 #include <fstream>
 #include <sstream>
 #include <filesystem>
+#include "cvrpData.h"
 
 #define TRUE
 #define FALSE
@@ -79,6 +80,7 @@ CVRPData lerArquivoVRP(const std::string& caminhoArquivo) {
     int capacidade = 0;
     int numVeiculos = 1;
     int solucaoOtima = 0;
+    std::string nome;
     std::vector<std::pair<double, double>> coordenadas;
     std::vector<int> demandas;
     int deposito = -1;
@@ -98,6 +100,9 @@ CVRPData lerArquivoVRP(const std::string& caminhoArquivo) {
         }
         else if (linha.find("CAPACITY") != std::string::npos) {
             capacidade = std::stoi(linha.substr(linha.find(":") + 1));
+        }
+        else if (linha.find("NAME") != std::string::npos) {
+            nome = linha.substr(linha.find(":") + 1);
         }
         else if (linha.find("NODE_COORD_SECTION") != std::string::npos) {
             emNodeCoord = true;
@@ -155,7 +160,7 @@ CVRPData lerArquivoVRP(const std::string& caminhoArquivo) {
         }
     }
 
-    CVRPData dados{distancias, demandas, capacidade, deposito, numVeiculos, solucaoOtima};
+    CVRPData dados{distancias, demandas, nome, capacidade, deposito, numVeiculos, solucaoOtima};
     return dados;
 }
 
@@ -211,4 +216,50 @@ size_t hashGenes(const std::vector<int>& genes) {
         seed ^= std::hash<int>()(g) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
     }
     return seed;
+}
+
+void salvarResultados(const Individuo& melhor, int solucaoOtima, int duracao, int numGerSemEvo, const std::vector<int>& genes, const CVRPData& dataCVRP) {
+    // Abrir o arquivo no modo append para não sobrescrever os dados
+    std::ofstream arquivo("resultados_2"+dataCVRP.nome+".txt", std::ios::app); // O parâmetro std::ios::app garante que o arquivo será atualizado.
+
+    // Verificar se o arquivo foi aberto corretamente
+    if (!arquivo.is_open()) {
+        std::cerr << "Erro ao abrir o arquivo para escrita!" << std::endl;
+        return;
+    }
+
+    // Escrever os resultados no arquivo
+    arquivo << "\n ===================================================RESULTADOS=========================================================\n";
+    arquivo << "Melhor fitness final: " << melhor.fitness << "\n";
+    arquivo << "Melhor fitness possivel: " << solucaoOtima << "\n";
+    arquivo << "Tempo de execução: " << duracao << "\n";
+    
+    // Função para imprimir o vetor no arquivo
+    arquivo << "Melhor solução encontrada: ";
+    for (const auto& gene : genes) {
+        arquivo << gene << " ";
+    }
+    arquivo << "\n";
+    
+    double classificar = ((double)(melhor.fitness - solucaoOtima) / solucaoOtima) * 100;
+    
+    if (classificar >= 0 && classificar <= 5) {
+        arquivo << "Solução encontrada considerada boa\n";
+    } else if (classificar > 5 && classificar <= 8) {
+        arquivo << "Solução encontrada considerada mediana\n";
+    } else {
+        arquivo << "Solução encontrada considerada ruim\n";
+    }
+
+    arquivo << "GAP de " << classificar << "\n";
+    arquivo << "Numero maximo de geracoes sem evolucao: " << numGerSemEvo << "\n";
+    
+    // Supondo que 'verificarValidadeCVRP' seja uma função que retorna um valor booleano
+    bool solucaoValida = verificarValidadeCVRP(genes, dataCVRP); 
+    arquivo << "Solucão valida: " << (solucaoValida ? "Sim" : "Não") << "\n";
+    
+    arquivo << "====================================================================================================================\n\n";
+
+    // Fechar o arquivo
+    arquivo.close();
 }

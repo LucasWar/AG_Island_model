@@ -1,19 +1,72 @@
 #include "Topologia.h"
 #include "Individuo.h"
 #include "cvrpData.h"
+#include <iostream>
 #include "Island.h"
 #include <vector>
 #include <string>
 #include <random>
 
-std::vector<Island> Topologia::criarTopologia(std::string opcTopologia, int numIlhas, int seed) {
+std::vector<Island> Topologia::criarTopologia(std::string opcTopologia, int numIlhas, int seed, std::string crossover,std::string selecao) {
+    std::vector<Island> islands = {};
     if (opcTopologia == "Malha") {
-        return criarMalha(numIlhas, seed);
+        islands = criarMalha(numIlhas, seed);
     } else if (opcTopologia == "Anel") {
-        return criarAnel(numIlhas, seed);
-    } else {
+        islands = criarAnel(numIlhas, seed);
+    } 
+
+    if(islands.size() == 0) {
         return {};
     }
+    std::cout << "Numero de ilhas: " << numIlhas << std::endl;
+    std::cout << "Topologia Selecionada: "<< opcTopologia << std::endl;
+
+    std::uniform_real_distribution<double> distLocal(0, 1);
+    std::uniform_real_distribution<double> probMutGerador(0.2, 0.6);
+    if(islands.size() > 1){
+        for (auto &island : islands) {
+            island.proMutacao = probMutGerador(island.geradorlocal);
+            // Alternância forçada entre OX e PMX para diversidade
+            if (island.idIlha % 3 == 0) {
+                island.tipoSelecao = "Torneio";
+                island.proMutacao = 0.15;
+                island.crossoverisland = std::make_unique<PMXCrossover>();
+                island.usaBuscaLocal = true;
+            } else if (island.idIlha % 3 == 1) {
+                island.tipoSelecao = "Roleta";
+                island.proMutacao = 0.05;
+                island.crossoverisland = std::make_unique<OXCrossover>();
+                island.usaBuscaLocal = false;
+            } else {
+                island.tipoSelecao = "Elitista";
+                island.proMutacao = 0.25;
+                island.crossoverisland = std::make_unique<RBXCrossover>();
+                island.usaBuscaLocal = true;
+            }
+        }    
+    }
+    else{
+        if(selecao == "None" or crossover == "None"){
+            return {};
+        }
+        auto island = &islands[0];
+        island->tipoSelecao = selecao;
+        if (crossover == "PMX") {
+            island->crossoverisland = std::make_unique<PMXCrossover>();
+        } else if (crossover == "OX") {
+            island->crossoverisland = std::make_unique<OXCrossover>();
+        } else {
+            island->crossoverisland = std::make_unique<RBXCrossover>();
+        }
+        island->proMutacao = 0.25;
+        island->usaBuscaLocal = true;
+        std::cout << "Crossover selecionado: " << crossover << std::endl;
+    }
+
+    
+    
+
+    return islands;
 }
 
 

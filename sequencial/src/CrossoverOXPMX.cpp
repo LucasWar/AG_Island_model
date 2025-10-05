@@ -13,7 +13,8 @@
 Individuo OXCrossover::aplicar(const Individuo &pai1,
                                const Individuo &pai2,
                                std::mt19937 &geradorLocal,
-                               const CVRPData &dataCVRP) {
+                               const CVRPData &dataCVRP,
+                               bool aplicar2opt) {
 
     // Extrair clientes (sem zeros)
     std::vector<int> clientes1, clientes2;
@@ -52,7 +53,7 @@ Individuo OXCrossover::aplicar(const Individuo &pai1,
     }
 
     // Reparar e avaliar fitness
-    std::vector<int> genesCorrigidos = repararCVRP(filho, dataCVRP);
+    std::vector<int> genesCorrigidos = repararCVRP(filho, dataCVRP,aplicar2opt);
     if (genesCorrigidos.empty()) return pai1;
 
     return Individuo(genesCorrigidos, calcularFitness(genesCorrigidos, dataCVRP));
@@ -65,7 +66,8 @@ Individuo OXCrossover::aplicar(const Individuo &pai1,
 Individuo PMXCrossover::aplicar(const Individuo &pai1,
                                 const Individuo &pai2,
                                 std::mt19937 &geradorLocal,
-                                const CVRPData &dataCVRP) {
+                                const CVRPData &dataCVRP,
+                                bool aplicar2opt) {
 
     // Extrair clientes (sem zeros)
     std::vector<int> clientes1, clientes2;
@@ -119,14 +121,14 @@ Individuo PMXCrossover::aplicar(const Individuo &pai1,
     }
 
     // Reparar e avaliar fitness
-    std::vector<int> cromossomo = repararCVRP(filho, dataCVRP);
+    std::vector<int> cromossomo = repararCVRP(filho, dataCVRP,aplicar2opt);
     if (cromossomo.empty()) return pai1;
 
     return Individuo(cromossomo, calcularFitness(cromossomo, dataCVRP));
 }
 
 
-Individuo RBXCrossover::aplicar(const Individuo& pai1, const Individuo& pai2,std::mt19937& gerador, const CVRPData& data){
+Individuo RBXCrossover::aplicar(const Individuo& pai1, const Individuo& pai2,std::mt19937& gerador, const CVRPData& data, bool aplicar2opt){
         auto extrairRotas = [](const std::vector<int>& genes) {
             std::vector<std::vector<int>> rotas;
             std::vector<int> atual;
@@ -184,7 +186,7 @@ Individuo RBXCrossover::aplicar(const Individuo& pai1, const Individuo& pai2,std
         filhoGenes.insert(filhoGenes.end(), resto.begin(), resto.end());
 
         // Repara para gerar solução viável
-        std::vector<int> filhoReparado = repararCVRP(filhoGenes, data);
+        std::vector<int> filhoReparado = repararCVRP(filhoGenes, data,aplicar2opt);
         if (filhoReparado.empty()) {
             // Se reparo falhar, devolve pai1 (ou penaliza)
             return pai1;

@@ -6,7 +6,7 @@
 #include <memory>
 #include "Crossover.h"
 
-struct Island {
+struct Ilha {
     static int nextId;          // declaração apenas
     int idIlha;
     int seed;
@@ -16,7 +16,7 @@ struct Island {
     std::string tipoSelecao;
 
     float proMutacao;
-    std::unique_ptr<ICrossover> crossoverisland; 
+    std::unique_ptr<ICrossover> crossoverilha; 
     
 
     std::vector<int> vizinhos;
@@ -26,6 +26,6 @@ struct Island {
     bool reset = false;
     int resetNum = 200;
     std::mt19937 geradorlocal;
-    Island(int seed); // construtor
+    Ilha(int seed); // construtor
     void imprimirPopulacao();
 };

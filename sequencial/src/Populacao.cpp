@@ -149,12 +149,12 @@ std::vector<int> GeneticAlgorithm::criarIndividuo_InsercaoAleatoria(std::mt19937
 }
 
 
-void GeneticAlgorithm::gerarPopulacaoDiversificada(vetorIslands &islands) {
+void GeneticAlgorithm::gerarPopulacaoDiversificada(vetorIlhas &ilhas) {
     // Supondo que sua função de reparo se chame 'tentarRepararSolucaoCVRP'
     // std::vector<int> genesReparados = tentarRepararSolucaoCVRP(genes);
     
-    for (auto &island : islands) {
-        island.populacao.reserve(tamPopulacao);
+    for (auto &ilha : ilhas) {
+        ilha.populacao.reserve(tamPopulacao);
         for (int i = 0; i < tamPopulacao; ) {
             std::vector<int> genes;
 
@@ -162,11 +162,11 @@ void GeneticAlgorithm::gerarPopulacaoDiversificada(vetorIslands &islands) {
             double proporcao = static_cast<double>(i) / tamPopulacao;
 
             if (proporcao < 0.4) { // 40% da população com Aleatorio-Gulos
-                genes = criarIndividuo_AleatorioGulos(island.geradorlocal);
+                genes = criarIndividuo_AleatorioGulos(ilha.geradorlocal);
             } else if (proporcao < 0.8) { // 40% com Vizinho Mais Próximo
-                genes = criarIndividuo_VizinhoMaisProximo(island.geradorlocal);
+                genes = criarIndividuo_VizinhoMaisProximo(ilha.geradorlocal);
             } else { // 20% com Inserção Aleatória
-                genes = criarIndividuo_InsercaoAleatoria(island.geradorlocal);
+                genes = criarIndividuo_InsercaoAleatoria(ilha.geradorlocal);
             }
 
             // Se a heurística falhou em gerar um indivíduo completo, tenta de novo
@@ -174,11 +174,11 @@ void GeneticAlgorithm::gerarPopulacaoDiversificada(vetorIslands &islands) {
                 continue; // O loop 'for' não incrementa 'i'
             }
             
-            genes = repararCVRP(genes,dataCVRP,island.usaBuscaLocal);
+            genes = repararCVRP(genes,dataCVRP,ilha.usaBuscaLocal);
 
             if(!genes.empty()){
                 Individuo ind(genes, calcularFitness(genes, dataCVRP));
-                island.populacao.push_back(ind);
+                ilha.populacao.push_back(ind);
                 i++; // Só incrementa quando um indivíduo válido é adicionado
             }
         }
@@ -186,14 +186,14 @@ void GeneticAlgorithm::gerarPopulacaoDiversificada(vetorIslands &islands) {
 }
 
 
-void GeneticAlgorithm::gerarPopulacao(vetorIslands &islands){
-    for(auto &island : islands){
-        island.populacao.reserve(tamPopulacao);
+void GeneticAlgorithm::gerarPopulacao(vetorIlhas &ilhas){
+    for(auto &ilha : ilhas){
+        ilha.populacao.reserve(tamPopulacao);
         for(int i = 0; i < tamPopulacao; ){ 
             
             std::vector<int> clientes(tamIndividuo - 1);
             std::iota(clientes.begin(), clientes.end(), 1);
-            std::shuffle(clientes.begin(), clientes.end(), island.geradorlocal);
+            std::shuffle(clientes.begin(), clientes.end(), ilha.geradorlocal);
 
             std::vector<int> genes;
             std::list<int> clientesNaoAtendidos(clientes.begin(), clientes.end());
@@ -223,8 +223,56 @@ void GeneticAlgorithm::gerarPopulacao(vetorIslands &islands){
             }
 
             Individuo ind(genes, calcularFitness(genes,dataCVRP));
-            island.populacao.push_back(ind);
+            ilha.populacao.push_back(ind);
             i++; // Indivíduo válido gerado, incrementa
         }
     }
+}
+
+Individuo GeneticAlgorithm::gerarIndividuoUnicoDiversificado(std::mt19937 &gerador) {
+    while (true) {
+        std::vector<int> genes;
+        std::uniform_int_distribution<int> dist_operador(1, 100);
+        int escolha = dist_operador(gerador);
+
+        if (escolha <= 40) { // 40% com Aleatorio-Gulos
+            genes = criarIndividuo_AleatorioGulos(gerador);
+        } else if (escolha <= 80) { // 40% com Vizinho Mais Próximo
+            genes = criarIndividuo_VizinhoMaisProximo(gerador);
+        } else { // 20% com Inserção Aleatória
+            genes = criarIndividuo_InsercaoAleatoria(gerador);
+        }
+
+        if (!genes.empty()) {
+            return Individuo(genes, calcularFitness(genes, dataCVRP));
+        }
+    }
+}
+
+Individuo GeneticAlgorithm::melhorIndividuo(vetorIlhas &ilhas, int geracao) {
+    bool inicializado = false;
+    Individuo melhor;
+    for (auto &ilha : ilhas) {
+        if (ilha.populacao.empty()) continue;
+
+        auto it = std::min_element(ilha.populacao.begin(), ilha.populacao.end(),
+                                     [](const Individuo& a, const Individuo& b) { return a.fitness < b.fitness; });
+
+        if(it->fitness <= ilha.melhorIndividuoIlhaa.fitness and it->genes != ilha.melhorIndividuoIlhaa.genes){
+            ilha.melhorIndividuoIlhaa = *it;
+            ilha.geracaoUltimaEvolucao = geracao;
+        }else if(geracao - ilha.geracaoUltimaEvolucao >= 100){
+            ilha.reset = true;
+            //std::cout << "Estagnação detectada na ilha " << ilha.idIlha << " (geracao: " << geracao  << ", ultima evolução: " << ilha.geracaoUltimaEvolucao << ")\n";
+        }
+
+        if (!inicializado || it->fitness < melhor.fitness) {
+            melhor = *it;
+            inicializado = true;
+        }
+        
+    }
+    
+    if (!inicializado) throw std::runtime_error("Nenhuma população encontrada para avaliar.");
+    return melhor;
 }

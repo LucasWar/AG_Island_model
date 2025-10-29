@@ -1,5 +1,5 @@
 Comando para compilar
-g++ -std=c++17 -O2 -I include src/algoritmoGenetico.cpp src/CrossoverOXPMX.cpp src/Fitness.cpp src/individuo.cpp src/Island.cpp src/main.cpp src/Migracao.cpp src/Mutacao.cpp src/Reparar.cpp src/Selecao.cpp src/Populacao.cpp src/Topologia.cpp src/Utils.cpp -o ag_exec
+g++ -std=c++17 -O2 -fopenmp -I include src/algoritmoGenetico.cpp src/CrossoverOXPMX.cpp src/Fitness.cpp src/individuo.cpp src/Ilha.cpp src/main.cpp src/Migracao.cpp src/Mutacao.cpp src/Reparar.cpp src/Selecao.cpp src/Populacao.cpp src/Topologia.cpp src/ReinicioPopulacao.cpp src/Utils.cpp -o ag_exec
 
 Executar
 ag_exec

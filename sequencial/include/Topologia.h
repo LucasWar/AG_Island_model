@@ -1,4 +1,4 @@
-#include "Island.h"
+#include "Ilha.h"
 #include "cvrpData.h"
 #include "Individuo.h"
 #include <vector>
@@ -12,10 +12,10 @@ enum class TipoTopologia {
 
 class Topologia{
 private:
-    std::vector<Island> criarMalha(int numIlhas, int seed);
-    std::vector<Island> criarAnel(int numIlhas, int seed);
+    std::vector<Ilha> criarMalha(int numIlhas, int seed);
+    std::vector<Ilha> criarAnel(int numIlhas, int seed);
 public:
-    std::vector<Island> criarTopologia(std::string tipo,int numIslands, int seed,std::string crossover,std::string selecao);
+    std::vector<Ilha> criarTopologia(std::string tipo,int numIlhas, int seed,std::string crossover,std::string selecao);
 
 };
 

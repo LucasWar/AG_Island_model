@@ -6,39 +6,40 @@
 #include <algorithm>
 #include <unordered_set>
 
-vectorIndiviudos GeneticAlgorithm::selecionarMigrantesUnicos(const vectorIndiviudos &populacao, std::mt19937 &gerador) {
-    vectorIndiviudos selecionados;
-    std::unordered_set<size_t> hashesVistos;
+// vectorIndiviudos GeneticAlgorithm::selecionarMigrantesUnicos(const vectorIndiviudos &populacao, std::mt19937 &gerador) {
+//     vectorIndiviudos selecionados;
+//     std::unordered_set<size_t> hashesVistos;
 
-    std::vector<int> indices(populacao.size());
-    std::iota(indices.begin(), indices.end(), 0);
-    std::shuffle(indices.begin(), indices.end(), gerador);
+//     std::vector<int> indices(populacao.size());
+//     std::iota(indices.begin(), indices.end(), 0);
+//     std::shuffle(indices.begin(), indices.end(), gerador);
 
-    for (int idx : indices) {
-        const auto &ind = populacao[idx];
-        size_t h = hashGenes(ind.genes);
-        if (hashesVistos.find(h) == hashesVistos.end()) {
-            hashesVistos.insert(h);
-            selecionados.push_back(ind);
-        }
-        if (selecionados.size() >= tamMigracao) break;
-    }
-    return selecionados;
-}
+//     for (int idx : indices) {
+//         const auto &ind = populacao[idx];
+//         size_t h = hashGenes(ind.genes);
+//         if (hashesVistos.find(h) == hashesVistos.end()) {
+//             hashesVistos.insert(h);
+//             selecionados.push_back(ind);
+//         }
+//         if (selecionados.size() >= tamMigracao) break;
+//     }
+    
+//     return selecionados;
+// }
 
-void GeneticAlgorithm::migracaoPopulacao(vectorIndiviudos &populacao, const vectorIndiviudos &selecionados) {
-    int k = selecionados.size();
-    if (k == 0 || populacao.empty()) return;
+// void GeneticAlgorithm::migracaoPopulacao(vectorIndiviudos &populacao, const vectorIndiviudos &selecionados) {
+//     int k = selecionados.size();
+//     if (k == 0 || populacao.empty()) return;
 
-    if (k > populacao.size()) k = populacao.size();
+//     if (k > populacao.size()) k = populacao.size();
 
-    // Ordena população para trazer os piores para frente
-    std::partial_sort(populacao.begin(), populacao.begin() + k, populacao.end(),
-                      [](const Individuo &a, const Individuo &b){ return a.fitness < b.fitness; });
+//     // Ordena população para trazer os piores para frente
+//     std::partial_sort(populacao.begin(), populacao.begin() + k, populacao.end(),
+//                       [](const Individuo &a, const Individuo &b){ return a.fitness < b.fitness; });
 
-    for (int i = 0; i < k; ++i)
-        populacao[i] = selecionados[i];
-}
+//     for (int i = 0; i < k; ++i)
+//         populacao[i] = selecionados[i];
+// }
 
 vectorIndiviudos GeneticAlgorithm::selecionarMigrantes_Torneio(const vectorIndiviudos &populacao, std::mt19937 &gerador, int tamanhoTorneio) {
     if (populacao.empty()) {
@@ -88,52 +89,67 @@ vectorIndiviudos GeneticAlgorithm::selecionarMigrantes_Torneio(const vectorIndiv
 }
 
 
-void GeneticAlgorithm::realizarMigracao_Aprimorada(vetorIslands &islands) {
-    if (islands.size() < 2) return;
+void GeneticAlgorithm::realizarMigracao_Aprimorada(vetorIlhas &ilhas) {
+    if (ilhas.size() < 2) return;
 
     const int TAMANHO_TORNEIO = 3;
-    const double PROB_MIGRAR = 0.6; // 60% das ilhas migram a cada rodada
+    const double PROB_MIGRAR = 1.0; // 60% das ilhas migram a cada rodada
 
     // --- 1. Escolhe ilhas que migrarão nesta rodada ---
+    auto ilhasMigrantes = escolherIlhasMigrantes(ilhas,PROB_MIGRAR);
+    // --- 2. Seleciona migrantes de cada ilha ---
+    auto migrantesPorIlha = coletarMigrantes(ilhas,ilhasMigrantes,TAMANHO_TORNEIO);
+    
+    // --- 3. Envia migrantes para os vizinhos ---
+    enviarMigrantes(ilhas,ilhasMigrantes,migrantesPorIlha);
+}
+
+
+std::vector<size_t> GeneticAlgorithm::escolherIlhasMigrantes(vetorIlhas &ilhas, double probMigrar){
     std::vector<size_t> ilhasMigrantes;
-    for (size_t i = 0; i < islands.size(); ++i) {
+    for (size_t i = 0; i < ilhas.size(); ++i) {
         std::uniform_real_distribution<double> prob(0.0, 1.0);
-        if (prob(islands[i].geradorlocal) < PROB_MIGRAR)
+        if (prob(ilhas[i].geradorlocal) < probMigrar)
             ilhasMigrantes.push_back(i);
     }
 
-    if (ilhasMigrantes.empty()) return;
+    return ilhasMigrantes;
+}
 
-    // --- 2. Seleciona migrantes de cada ilha ---
-    std::vector<vectorIndiviudos> migrantesPorIlha(islands.size());
+
+std::vector<vectorIndiviudos> GeneticAlgorithm::coletarMigrantes(vetorIlhas &ilhas, const std::vector<size_t> &ilhasMigrantes,int tamTorneio){
+    std::vector<vectorIndiviudos> migrantesPorIlha(ilhas.size());
     for (size_t i : ilhasMigrantes) {
-        auto &ilha = islands[i];
+        auto &ilha = ilhas[i];
         auto migrantes = selecionarMigrantes_Torneio(
-            ilha.populacao, ilha.geradorlocal, TAMANHO_TORNEIO);
+            ilha.populacao, ilha.geradorlocal, tamTorneio);
 
         // Mantém apenas 50% dos melhores migrantes
-        std::sort(migrantes.begin(), migrantes.end(),
-                  [](const Individuo &a, const Individuo &b) {
-                      return a.fitness < b.fitness;
-                  });
-        if (migrantes.size() > 2)
-            migrantes.resize(migrantes.size() / 2);
+        // std::sort(migrantes.begin(), migrantes.end(),
+        //           [](const Individuo &a, const Individuo &b) {
+        //               return a.fitness < b.fitness;
+        //           });
+        // if (migrantes.size() > 2)
+        //     migrantes.resize(migrantes.size() / 2);
 
         migrantesPorIlha[i] = std::move(migrantes);
     }
 
-    // --- 3. Envia migrantes para os vizinhos ---
+    return migrantesPorIlha;
+}
+
+void GeneticAlgorithm::enviarMigrantes(vetorIlhas &ilhas, const std::vector<size_t> &ilhasMigrantes, const std::vector<vectorIndiviudos> &migrantesPorIlha){
     for (size_t i : ilhasMigrantes) {
-        Island &origem = islands[i];
+        Ilha &origem = ilhas[i];
         const auto &migrantes = migrantesPorIlha[i];
         if (migrantes.empty()) continue;
 
         for (int vizinhoId : origem.vizinhos) {
-            auto it_destino = std::find_if(islands.begin(), islands.end(),
-                [vizinhoId](const Island &il) { return il.idIlha == vizinhoId; });
+            auto it_destino = std::find_if(ilhas.begin(), ilhas.end(),
+                [vizinhoId](const Ilha &il) { return il.idIlha == vizinhoId; });
 
-            if (it_destino == islands.end()) continue;
-            Island &destino = *it_destino;
+            if (it_destino == ilhas.end()) continue;
+            Ilha &destino = *it_destino;
 
             // Ordena destino para proteger bons indivíduos
             std::sort(destino.populacao.begin(), destino.populacao.end(),
@@ -144,7 +160,8 @@ void GeneticAlgorithm::realizarMigracao_Aprimorada(vetorIslands &islands) {
             std::unordered_set<size_t> hashDestino;
             for (const auto &ind : destino.populacao)
                 hashDestino.insert(hashGenes(ind.genes));
-
+            
+            if(destino.populacao.empty()) continue;
             int idxSubst = destino.populacao.size() - 1; // substitui piores
 
             std::uniform_real_distribution<double> distLocal(0.0, 1.0);

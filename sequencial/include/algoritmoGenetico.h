@@ -2,13 +2,13 @@
 #include "Individuo.h"
 #include "TypesUtils.h"
 #include "cvrpData.h"
-#include "Island.h"
+#include "Ilha.h"
 #include "Reparar.h"
 #include "Crossover.h"
 #include <memory>
 #include <vector>
 #include <random>
-
+#include <unordered_set>
 class GeneticAlgorithm {
 private:
 
@@ -21,11 +21,11 @@ private:
     std::unique_ptr<ICrossover> crossoverStrategy; 
     vectorIndiviudos populacao;
 
-    void executarGeracao(Island &ilha, std::uniform_real_distribution<double> &distLocal);
+    void executarGeracao(Ilha &ilha, std::uniform_real_distribution<double> &distLocal);
     
-    void gerarPopulacaoCVPR(vetorIslands &islands);
+    void gerarPopulacaoCVPR(vetorIlhas &ilhas);
 
-    Individuo melhorIndividuo(vetorIslands &island, int geracao);
+    Individuo melhorIndividuo(vetorIlhas &ilha, int geracao);
 
     vectorIndiviudos selecaoTorneio(vectorIndiviudos &populacao,std::mt19937 &geradorLocal);
     vectorIndiviudos selecaoRoleta(vectorIndiviudos &populacao,std::mt19937 &geradorLocal);
@@ -42,26 +42,39 @@ private:
     void mutacaoCVRP(Individuo &ind, std::mt19937 &geradorLocal);
 
     vectorIndiviudos selecionarMigrantesUnicos(const std::vector<Individuo>& populacao, std::mt19937& gerador);
-    void realizarMigracao(vetorIslands &islands);
+    void realizarMigracao(vetorIlhas &ilhas);
     void migracaoPopulacao(vectorIndiviudos &populacao, const vectorIndiviudos &selecionados);
     vectorIndiviudos selecionarMigrantes_Torneio(const vectorIndiviudos &populacao, std::mt19937 &gerador, int tamanhoTorneio);
-    void realizarMigracao_Aprimorada(vetorIslands &islands);
+    void realizarMigracao_Aprimorada(vetorIlhas &ilhas);
     //std::vector<int> repararCVRP(const std::vector<int>& clientes);
     //std::vector<std::vector<int>> extrairRotas(const std::vector<int>& genes);
 
-    void gerarPopulacaoDiversificada(vetorIslands &islands);
+    void gerarPopulacaoDiversificada(vetorIlhas &ilhas);
     
     std::vector<int> criarIndividuo_InsercaoAleatoria(std::mt19937& gerador);
     std::vector<int> criarIndividuo_VizinhoMaisProximo(std::mt19937& gerador);
     std::vector<int> criarIndividuo_AleatorioGulos(std::mt19937& gerador);
-    void reiniciarPopulacoes(Island &ilha, int geracaoAtual);
+    //void reiniciarPopulacoes(Ilha &ilha, int geracaoAtual);
     Individuo gerarIndividuoUnicoDiversificado(std::mt19937 &gerador);
+    void adicionarIndividuosAleatorios(Ilha &ilha, vectorIndiviudos &novaPopulacao, std::unordered_set<size_t> &hashesVistos, size_t numAleatorios);
+    void preservarElite(Ilha &ilha, vectorIndiviudos &novaPopulacao, std::unordered_set<size_t> &hashesVistos, size_t numMelhores);
+    void gerarIndividuosDiversificados(Ilha &ilha, vectorIndiviudos &novaPopulacao, size_t numAGerar);
+    void atualizarMelhorIndividuo(Ilha &ilha, int geracaoAtual);
+    size_t calcularQuantidadeAPreservar(size_t tamPopulacao, double percentual);
 
+
+    std::vector<size_t> escolherIlhasMigrantes(vetorIlhas &ilhas, double probMigrar);
+    std::vector<vectorIndiviudos> coletarMigrantes(vetorIlhas &ilhas, const std::vector<size_t> &ilhasMigrantes,int tamTorneio);
+    void enviarMigrantes(vetorIlhas &ilhas, const std::vector<size_t> &ilhasMigrantes, const std::vector<vectorIndiviudos> &migrantesPorIlha);
+
+    std::vector<Ilha>  inicarAlgoritmo();
 public:
     GeneticAlgorithm(int numGeracoes, float probMutacao, int tamPopulacao,float tamElite, const std::string& caminhoArquivo, std::uint64_t seed, int numInslands,float numMigracao,std::string opcTopologia,int freqMigracao,std::string opcCrossover = "None", std::string opcSelecao = "None");
-    void gerarPopulacao(vetorIslands &islands);
+    void gerarPopulacao(vetorIlhas &ilhas);
     vectorIndiviudos selecionarElite(vectorIndiviudos &atualPopulacao);
     void executarAlgoritmo();
-    void verificarEexecutarResgateColonial(vetorIslands &islands, int geracaoAtual);
+    void verificarEexecutarResgateColonial(vetorIlhas &ilhas, int geracaoAtual);
     double calcularDiversidade(const vectorIndiviudos &pop);
+    void reiniciarPopulacoes(Ilha &ilha, int geracaoAtual);
+
 };

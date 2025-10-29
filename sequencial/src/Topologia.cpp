@@ -2,20 +2,21 @@
 #include "Individuo.h"
 #include "cvrpData.h"
 #include <iostream>
-#include "Island.h"
+#include "Ilha.h"
 #include <vector>
 #include <string>
 #include <random>
 
-std::vector<Island> Topologia::criarTopologia(std::string opcTopologia, int numIlhas, int seed, std::string crossover,std::string selecao) {
-    std::vector<Island> islands = {};
+std::vector<Ilha> Topologia::criarTopologia(std::string opcTopologia, int numIlhas, int seed, std::string crossover,std::string selecao) {
+    Ilha::nextId = 0;
+    std::vector<Ilha> ilhas = {};
     if (opcTopologia == "Malha") {
-        islands = criarMalha(numIlhas, seed);
+        ilhas = criarMalha(numIlhas, seed);
     } else if (opcTopologia == "Anel") {
-        islands = criarAnel(numIlhas, seed);
+        ilhas = criarAnel(numIlhas, seed);
     } 
 
-    if(islands.size() == 0) {
+    if(ilhas.size() == 0) {
         return {};
     }
     std::cout << "Numero de ilhas: " << numIlhas << std::endl;
@@ -23,25 +24,25 @@ std::vector<Island> Topologia::criarTopologia(std::string opcTopologia, int numI
 
     std::uniform_real_distribution<double> distLocal(0, 1);
     std::uniform_real_distribution<double> probMutGerador(0.2, 0.6);
-    if(islands.size() > 1){
-        for (auto &island : islands) {
-            island.proMutacao = probMutGerador(island.geradorlocal);
+    if(ilhas.size() > 1){
+        for (auto &ilha : ilhas) {
+            ilha.proMutacao = probMutGerador(ilha.geradorlocal);
             // Alternância forçada entre OX e PMX para diversidade
-            if (island.idIlha % 3 == 0) {
-                island.tipoSelecao = "Torneio";
-                island.proMutacao = 0.15;
-                island.crossoverisland = std::make_unique<PMXCrossover>();
-                island.usaBuscaLocal = true;
-            } else if (island.idIlha % 3 == 1) {
-                island.tipoSelecao = "Roleta";
-                island.proMutacao = 0.05;
-                island.crossoverisland = std::make_unique<OXCrossover>();
-                island.usaBuscaLocal = false;
+            if (ilha.idIlha % 3 == 0) {
+                ilha.tipoSelecao = "Torneio";
+                ilha.proMutacao = 0.15;
+                ilha.crossoverilha = std::make_unique<PMXCrossover>();
+                ilha.usaBuscaLocal = true;
+            } else if (ilha.idIlha % 3 == 1) {
+                ilha.tipoSelecao = "Roleta";
+                ilha.proMutacao = 0.05;
+                ilha.crossoverilha = std::make_unique<OXCrossover>();
+                ilha.usaBuscaLocal = false;
             } else {
-                island.tipoSelecao = "Elitista";
-                island.proMutacao = 0.25;
-                island.crossoverisland = std::make_unique<RBXCrossover>();
-                island.usaBuscaLocal = true;
+                ilha.tipoSelecao = "Elitista";
+                ilha.proMutacao = 0.25;
+                ilha.crossoverilha = std::make_unique<RBXCrossover>();
+                ilha.usaBuscaLocal = true;
             }
         }    
     }
@@ -49,30 +50,27 @@ std::vector<Island> Topologia::criarTopologia(std::string opcTopologia, int numI
         if(selecao == "None" or crossover == "None"){
             return {};
         }
-        auto island = &islands[0];
-        island->tipoSelecao = selecao;
+        auto ilha = &ilhas[0];
+        ilha->tipoSelecao = selecao;
         if (crossover == "PMX") {
-            island->crossoverisland = std::make_unique<PMXCrossover>();
+            ilha->crossoverilha = std::make_unique<PMXCrossover>();
         } else if (crossover == "OX") {
-            island->crossoverisland = std::make_unique<OXCrossover>();
+            ilha->crossoverilha = std::make_unique<OXCrossover>();
         } else {
-            island->crossoverisland = std::make_unique<RBXCrossover>();
+            ilha->crossoverilha = std::make_unique<RBXCrossover>();
         }
-        island->proMutacao = 0.25;
-        island->usaBuscaLocal = true;
+        ilha->proMutacao = 0.25;
+        ilha->usaBuscaLocal = true;
         std::cout << "Crossover selecionado: " << crossover << std::endl;
     }
 
-    
-    
-
-    return islands;
+    return ilhas;
 }
 
 
 
-std::vector<Island> Topologia::criarMalha(int numIlhas, int seed) {
-    std::vector<Island> ilhas;
+std::vector<Ilha> Topologia::criarMalha(int numIlhas, int seed) {
+    std::vector<Ilha> ilhas;
     int numLin = std::floor(std::sqrt(numIlhas));
     int numCols = std::ceil((double)numIlhas / numLin);
 
@@ -80,7 +78,7 @@ std::vector<Island> Topologia::criarMalha(int numIlhas, int seed) {
 
 
     for (int id = 0; id < numIlhas; id++) {
-        Island ilha(seed);
+        Ilha ilha(seed);
         
 
         int linha = ilha.idIlha / numCols;
@@ -98,23 +96,21 @@ std::vector<Island> Topologia::criarMalha(int numIlhas, int seed) {
 
         ilhas.push_back(std::move(ilha));
     }
-    Island::nextId = 1;
     return ilhas;
 }
 
-std::vector<Island> Topologia::criarAnel(int numIlhas, int seed) {
-    std::vector<Island> ilhas;
+std::vector<Ilha> Topologia::criarAnel(int numIlhas, int seed) {
+    std::vector<Ilha> ilhas;
     for (int id = 0; id < numIlhas; id++) {
-        Island ilha(seed);
-        if(ilha.idIlha != numIlhas){
+        Ilha ilha(seed);
+        if(ilha.idIlha != numIlhas - 1){
             ilha.vizinhos.push_back(ilha.idIlha + 1);
         }else{
-            ilha.vizinhos.push_back(1);
+            ilha.vizinhos.push_back(0);
         }
     
         ilhas.push_back(std::move(ilha));
     }
-    Island::nextId = 1;
 
     return ilhas;
 }

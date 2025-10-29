@@ -12,7 +12,7 @@
 #include <map>
 
 typedef std::vector<Individuo> vectorIndiviudos;
-typedef std::vector<Island> vetorIslands;
+typedef std::vector<Ilha> vetorIlhas;
 
 vectorIndiviudos GeneticAlgorithm::selecaoTorneio(vectorIndiviudos &populacao, std::mt19937 &geradorLocal) {
     // A seleção por torneio está correta e pode ser mantida.
@@ -71,7 +71,7 @@ vectorIndiviudos GeneticAlgorithm::selecionarElite(vectorIndiviudos &populacao){
     return copia;
 }
 
-void GeneticAlgorithm::executarGeracao(Island &ilha, std::uniform_real_distribution<double> &distLocal) {
+void GeneticAlgorithm::executarGeracao(Ilha &ilha, std::uniform_real_distribution<double> &distLocal) {
     if (ilha.populacao.empty()) return;
 
     // --- 1. Seleciona elite ---
@@ -104,7 +104,7 @@ void GeneticAlgorithm::executarGeracao(Island &ilha, std::uniform_real_distribut
                     selecaoRoleta(ilha.populacao, ilha.geradorlocal) :
                     selecaoTorneio(ilha.populacao, ilha.geradorlocal);
 
-        Individuo filho = ilha.crossoverisland->aplicar(
+        Individuo filho = ilha.crossoverilha->aplicar(
             pais[0], pais[1], ilha.geradorlocal, dataCVRP, ilha.usaBuscaLocal);
 
         // Mutação com probabilidade adaptada

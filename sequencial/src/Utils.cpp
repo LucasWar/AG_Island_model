@@ -1,5 +1,5 @@
 #include "utils.h"
-#include "Island.h"
+#include "Ilha.h"
 #include "cvrpData.h"
 #include <iostream>
 #include <fstream>
@@ -218,9 +218,9 @@ size_t hashGenes(const std::vector<int>& genes) {
     return seed;
 }
 
-void salvarResultados(const Individuo& melhor, int solucaoOtima, int duracao, int numGerSemEvo, const std::vector<int>& genes, const CVRPData& dataCVRP) {
+void salvarResultados(const Individuo& melhor, int solucaoOtima, int duracao, int numGerSemEvo, const std::vector<int>& genes, const CVRPData& dataCVRP, int numIlhas) {
     // Abrir o arquivo no modo append para não sobrescrever os dados
-    std::ofstream arquivo("resultados_2"+dataCVRP.nome+".txt", std::ios::app); // O parâmetro std::ios::app garante que o arquivo será atualizado.
+    std::ofstream arquivo("resultados_"+dataCVRP.nome+"_Ilhas_" + std::to_string(numIlhas) +".txt", std::ios::app); // O parâmetro std::ios::app garante que o arquivo será atualizado.
 
     // Verificar se o arquivo foi aberto corretamente
     if (!arquivo.is_open()) {
@@ -262,4 +262,47 @@ void salvarResultados(const Individuo& melhor, int solucaoOtima, int duracao, in
 
     // Fechar o arquivo
     arquivo.close();
+}
+
+
+std::vector<int> extrairClientes(const std::vector<int>& genes) {
+    std::vector<int> clientes;
+    clientes.reserve(genes.size());
+    for (int g : genes) {
+        if (g != 0) {
+            clientes.push_back(g);
+        }
+    }
+    return clientes;
+}
+
+std::vector<std::vector<int>> extrairRotas(const std::vector<int>& genes) {
+    std::vector<std::vector<int>> rotas;
+    std::vector<int> rotaAtual;
+
+    for (int g : genes) {
+        if (g == 0) {
+            if (!rotaAtual.empty()) {
+                rotas.push_back(rotaAtual);
+                rotaAtual.clear();
+            }
+        } else {
+            rotaAtual.push_back(g);
+        }
+    }
+
+    // Adiciona última rota se não terminar com zero
+    if (!rotaAtual.empty()) {
+        rotas.push_back(rotaAtual);
+    }
+
+    return rotas;
+}
+
+std::pair<int, int> sortearPontosCorte(int tamanho, std::mt19937& gerador) {
+    std::uniform_int_distribution<int> dist(0, tamanho - 1);
+    int c1 = dist(gerador);
+    int c2 = dist(gerador);
+    if (c1 > c2) std::swap(c1, c2);
+    return {c1, c2};
 }

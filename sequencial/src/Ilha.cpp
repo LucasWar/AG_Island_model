@@ -1,14 +1,14 @@
-#include "Island.h"
+#include "Ilha.h"
 #include <iostream>
 #include <random>
 
 // definição do static
-int Island::nextId = 1;
+int Ilha::nextId = 0;
 
 // construtor
-Island::Island(int seed) : idIlha(nextId++), seed(seed), geradorlocal(idIlha + seed){} 
+Ilha::Ilha(int seed) : idIlha(nextId++), seed(seed), geradorlocal(idIlha + seed){} 
 
-void Island::imprimirPopulacao(){
+void Ilha::imprimirPopulacao(){
     for(auto &individuo : populacao){
         std::cout << "Caminho: " << individuo.cromossomo() << " Fitness: " << individuo.fitness << std::endl;
     }

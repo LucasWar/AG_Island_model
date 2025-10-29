@@ -3,218 +3,131 @@
 #include "utils.h"
 #include "cvrpData.h"
 #include "Fitness.h"
-#include <iostream>
 #include <algorithm>
-#include <chrono>
 #include <unordered_set>
 #include <numeric>
+#include <random>
 #include <cmath>
-#include <list>
-#include <map> 
+#include <map>
 
-std::vector<std::vector<int>> extrairRotas(const std::vector<int>& genes) {
-    std::vector<std::vector<int>> rotas;
-    if (genes.empty()) return rotas;
+// =============================================================
+// Funções utilitárias auxiliares
+// =============================================================
 
-    std::vector<int> rotaAtual;
-    for (size_t i = 1; i < genes.size(); ++i) {
-        if (genes[i] != 0) {
-            rotaAtual.push_back(genes[i]);
-        } else {
-            if (!rotaAtual.empty()) {
-                rotas.push_back(rotaAtual);
-                rotaAtual.clear();
-            }
-        }
-    }
-    return rotas;
-}
-
-// void GeneticAlgorithm::mutacaoCVRP(Individuo &ind, std::mt19937 &geradorLocal) {
-//     if (ind.genes.size() <= 3) return; // Não há o que mutar
-
-//     auto rotas = extrairRotas(ind.genes);
-//     if (rotas.empty()) return;
-
-//     std::uniform_int_distribution<int> dist_rotas(0, rotas.size() - 1);
-//     int idx_rota = dist_rotas(geradorLocal);
-    
-   
-//     if (rotas[idx_rota].size() >= 2) {
-//         std::uniform_int_distribution<int> dist_clientes(0, rotas[idx_rota].size() - 1);
-//         int pos1 = dist_clientes(geradorLocal);
-//         int pos2 = dist_clientes(geradorLocal);
-//         while (pos1 == pos2) {
-//             pos2 = dist_clientes(geradorLocal);
-//         }
-//         std::swap(rotas[idx_rota][pos1], rotas[idx_rota][pos2]);
-//         //std::reverse(rotas[idx_rota].begin() + pos1, rotas[idx_rota].begin() + pos2);
-//     }
-
-//     std::vector<int> novos_genes;
-//     novos_genes.push_back(0);
-//     for (const auto& rota : rotas) {
-//         for (int cliente : rota) {
-//             novos_genes.push_back(cliente);
-//         }
-//         novos_genes.push_back(0);
-//     }
-    
-//     ind.genes = novos_genes;
-//     ind.fitness = calcularFitness(ind.genes,dataCVRP); // Recalcula o fitness com a função correta
-// }
-
-
-
-// Função para recalcular a carga de uma rota
-double calcularCarga(const std::vector<int>& rota, const CVRPData& data) {
+static inline double calcularCarga(const std::vector<int>& rota, const CVRPData& data) {
     double carga = 0.0;
-    for (int cliente : rota) {
-        carga += data.demandas[cliente];
-    }
+    for (int cliente : rota) carga += data.demandas[cliente];
     return carga;
 }
 
-// OPERADOR 1: SWAP (O seu, levemente ajustado)
-// Refina a ordem de uma única rota.
-void mutacaoSwap(std::vector<std::vector<int>>& rotas, std::mt19937& gerador) {
-    if (rotas.empty()) return;
-    
-    std::uniform_int_distribution<int> dist_rotas(0, rotas.size() - 1);
-    int idx_rota = dist_rotas(gerador);
-
-    if (rotas[idx_rota].size() >= 2) {
-        std::uniform_int_distribution<int> dist_clientes(0, rotas[idx_rota].size() - 1);
-        int pos1 = dist_clientes(gerador);
-        int pos2 = dist_clientes(gerador);
-        if (pos1 != pos2) {
-            std::swap(rotas[idx_rota][pos1], rotas[idx_rota][pos2]);
-        }
-    }
+static inline int escolherIndiceAleatorio(int limite, std::mt19937& gerador) {
+    std::uniform_int_distribution<int> dist(0, limite - 1);
+    return dist(gerador);
 }
 
-// OPERADOR 2: INVERSÃO (2-Opt)
-// Desembaraça cruzamentos em uma rota.
-void mutacaoInversao(std::vector<std::vector<int>>& rotas, std::mt19937& gerador) {
-    if (rotas.empty()) return;
-
-    std::uniform_int_distribution<int> dist_rotas(0, rotas.size() - 1);
-    int idx_rota = dist_rotas(gerador);
-
-    if (rotas[idx_rota].size() >= 2) {
-        std::uniform_int_distribution<int> dist_clientes(0, rotas[idx_rota].size() - 1);
-        int pos1 = dist_clientes(gerador);
-        int pos2 = dist_clientes(gerador);
-        if (pos1 != pos2) {
-            if (pos1 > pos2) std::swap(pos1, pos2);
-            std::reverse(rotas[idx_rota].begin() + pos1, rotas[idx_rota].begin() + pos2 + 1);
-        }
-    }
+static inline int escolherRotaValida(const std::vector<std::vector<int>>& rotas, std::mt19937& gerador) {
+    if (rotas.empty()) return -1;
+    std::uniform_int_distribution<int> dist(0, rotas.size() - 1);
+    return dist(gerador);
 }
 
-// OPERADOR 3: MOVER CLIENTE (Relocate)
-// Move um cliente de uma rota para outra. Fundamental para a exploração.
-void mutacaoMoverCliente(std::vector<std::vector<int>>& rotas, const CVRPData& data, std::mt19937& gerador) {
-    if (rotas.size() < 2) return; // Precisa de pelo menos duas rotas para a operação
+// =============================================================
+// Tipos de mutação
+// =============================================================
 
-    std::uniform_int_distribution<int> dist_rotas(0, rotas.size() - 1);
-    int idx_origem = dist_rotas(gerador);
-    int idx_destino = dist_rotas(gerador);
-    if (rotas[idx_origem].empty()) return; // Rota de origem não pode ser vazia
-    while (idx_origem == idx_destino) {
-        idx_destino = dist_rotas(gerador);
-    }
-    
-    // Seleciona um cliente para mover
-    std::uniform_int_distribution<int> dist_clientes_origem(0, rotas[idx_origem].size() - 1);
-    int pos_cliente = dist_clientes_origem(gerador);
-    int cliente = rotas[idx_origem][pos_cliente];
+static void mutacaoSwap(std::vector<std::vector<int>>& rotas, std::mt19937& gerador) {
+    int idx = escolherRotaValida(rotas, gerador);
+    if (idx < 0 || rotas[idx].size() < 2) return;
 
-    // Verifica se a capacidade da rota de destino permite a inserção
-    double carga_destino = calcularCarga(rotas[idx_destino], data);
-    if (carga_destino + data.demandas[cliente] <= data.capacidade) {
-        // Move o cliente
-        rotas[idx_origem].erase(rotas[idx_origem].begin() + pos_cliente);
-        
-        // Insere em uma posição aleatória na rota de destino
-        std::uniform_int_distribution<int> dist_pos_destino(0, rotas[idx_destino].size());
-        rotas[idx_destino].insert(rotas[idx_destino].begin() + dist_pos_destino(gerador), cliente);
-    }
+    int p1 = escolherIndiceAleatorio(rotas[idx].size(), gerador);
+    int p2 = (p1 + escolherIndiceAleatorio(rotas[idx].size() - 1, gerador) + 1) % rotas[idx].size();
+
+    std::swap(rotas[idx][p1], rotas[idx][p2]);
 }
 
-// OPERADOR 4: TROCAR CLIENTES (Exchange)
-// Troca um cliente de uma rota com um cliente de outra rota.
-void mutacaoTrocarClientes(std::vector<std::vector<int>>& rotas, const CVRPData& data, std::mt19937& gerador) {
+static void mutacaoInversao(std::vector<std::vector<int>>& rotas, std::mt19937& gerador) {
+    int idx = escolherRotaValida(rotas, gerador);
+    if (idx < 0 || rotas[idx].size() < 2) return;
+
+    int p1 = escolherIndiceAleatorio(rotas[idx].size(), gerador);
+    int p2 = escolherIndiceAleatorio(rotas[idx].size(), gerador);
+    if (p1 > p2) std::swap(p1, p2);
+
+    std::reverse(rotas[idx].begin() + p1, rotas[idx].begin() + p2 + 1);
+}
+
+static void mutacaoMoverCliente(std::vector<std::vector<int>>& rotas, const CVRPData& data, std::mt19937& gerador) {
     if (rotas.size() < 2) return;
 
-    std::uniform_int_distribution<int> dist_rotas(0, rotas.size() - 1);
-    int idx1 = dist_rotas(gerador);
-    int idx2 = dist_rotas(gerador);
-    if (rotas[idx1].empty() || rotas[idx2].empty()) return;
-    while (idx1 == idx2) {
-        idx2 = dist_rotas(gerador);
-        if(rotas[idx2].empty()) return;
-    }
+    int origem = escolherRotaValida(rotas, gerador);
+    int destino = escolherRotaValida(rotas, gerador);
+    if (origem < 0 || destino < 0 || origem == destino || rotas[origem].empty()) return;
 
-    std::uniform_int_distribution<int> dist_c1(0, rotas[idx1].size() - 1);
-    std::uniform_int_distribution<int> dist_c2(0, rotas[idx2].size() - 1);
-    int pos1 = dist_c1(gerador);
-    int pos2 = dist_c2(gerador);
-    
-    int cliente1 = rotas[idx1][pos1];
-    int cliente2 = rotas[idx2][pos2];
+    int posCliente = escolherIndiceAleatorio(rotas[origem].size(), gerador);
+    int cliente = rotas[origem][posCliente];
+    double cargaDestino = calcularCarga(rotas[destino], data);
 
-    // Verifica se a troca mantém as capacidades válidas
-    double carga1_sem_c1 = calcularCarga(rotas[idx1], data) - data.demandas[cliente1];
-    double carga2_sem_c2 = calcularCarga(rotas[idx2], data) - data.demandas[cliente2];
-
-    if (carga1_sem_c1 + data.demandas[cliente2] <= data.capacidade &&
-        carga2_sem_c2 + data.demandas[cliente1] <= data.capacidade) {
-        // Realiza a troca
-        rotas[idx1][pos1] = cliente2;
-        rotas[idx2][pos2] = cliente1;
+    if (cargaDestino + data.demandas[cliente] <= data.capacidade) {
+        rotas[origem].erase(rotas[origem].begin() + posCliente);
+        int posInsercao = escolherIndiceAleatorio(rotas[destino].size() + 1, gerador);
+        rotas[destino].insert(rotas[destino].begin() + posInsercao, cliente);
     }
 }
 
+static void mutacaoTrocarClientes(std::vector<std::vector<int>>& rotas, const CVRPData& data, std::mt19937& gerador) {
+    if (rotas.size() < 2) return;
 
+    int r1 = escolherRotaValida(rotas, gerador);
+    int r2 = escolherRotaValida(rotas, gerador);
+    if (r1 < 0 || r2 < 0 || r1 == r2 || rotas[r1].empty() || rotas[r2].empty()) return;
 
+    int p1 = escolherIndiceAleatorio(rotas[r1].size(), gerador);
+    int p2 = escolherIndiceAleatorio(rotas[r2].size(), gerador);
 
-void GeneticAlgorithm::mutacaoCVRP(Individuo &ind, std::mt19937 &geradorLocal) {
+    int c1 = rotas[r1][p1];
+    int c2 = rotas[r2][p2];
+
+    double carga1 = calcularCarga(rotas[r1], data) - data.demandas[c1] + data.demandas[c2];
+    double carga2 = calcularCarga(rotas[r2], data) - data.demandas[c2] + data.demandas[c1];
+
+    if (carga1 <= data.capacidade && carga2 <= data.capacidade) {
+        std::swap(rotas[r1][p1], rotas[r2][p2]);
+    }
+}
+
+// =============================================================
+// Reconstrução e aplicação
+// =============================================================
+
+static std::vector<int> reconstruirGenes(const std::vector<std::vector<int>>& rotas) {
+    std::vector<int> genes = {0};
+    for (const auto& rota : rotas) {
+        if (!rota.empty()) {
+            genes.insert(genes.end(), rota.begin(), rota.end());
+            genes.push_back(0);
+        }
+    }
+    if (genes.size() == 1) genes.push_back(0);
+    return genes;
+}
+
+// =============================================================
+// Mutação principal CVRP
+// =============================================================
+
+void GeneticAlgorithm::mutacaoCVRP(Individuo& ind, std::mt19937& geradorLocal) {
     if (ind.genes.size() <= 3) return;
 
     auto rotas = extrairRotas(ind.genes);
     if (rotas.empty()) return;
 
-    // Escolhe qual operador de mutação usar com base em probabilidades
-    std::uniform_int_distribution<int> dist_operador(1, 100);
-    int escolha = dist_operador(geradorLocal);
+    int escolha = std::uniform_int_distribution<int>(1, 100)(geradorLocal);
 
-    if (escolha <= 25) { // 25% de chance para Swap
-        mutacaoSwap(rotas, geradorLocal);
-    } else if (escolha <= 50) { // 25% de chance para Inversão
-        mutacaoInversao(rotas, geradorLocal);
-    } else if (escolha <= 85) { // 35% de chance para Mover Cliente
-        mutacaoMoverCliente(rotas, dataCVRP, geradorLocal);
-    } else { // 15% de chance para Trocar Clientes
-        mutacaoTrocarClientes(rotas, dataCVRP, geradorLocal);
-    }
+    if (escolha <= 25) mutacaoSwap(rotas, geradorLocal);
+    else if (escolha <= 50) mutacaoInversao(rotas, geradorLocal);
+    else if (escolha <= 85) mutacaoMoverCliente(rotas, dataCVRP, geradorLocal);
+    else mutacaoTrocarClientes(rotas, dataCVRP, geradorLocal);
 
-    // --- Reconstrução dos genes (mesma lógica de antes) ---
-    std::vector<int> novos_genes;
-    novos_genes.push_back(0);
-    for (auto& rota : rotas) {
-        // Remove rotas que podem ter ficado vazias após a mutação
-        if (!rota.empty()) {
-            novos_genes.insert(novos_genes.end(), rota.begin(), rota.end());
-            novos_genes.push_back(0);
-        }
-    }
-    
-    // Garante que a representação seja válida mesmo que não haja clientes
-    if (novos_genes.size() == 1 && novos_genes[0] == 0) {
-        novos_genes.push_back(0);
-    }
-
-    ind.genes = novos_genes;
+    ind.genes = reconstruirGenes(rotas);
     ind.fitness = calcularFitness(ind.genes, dataCVRP);
 }

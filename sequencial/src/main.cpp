@@ -5,15 +5,15 @@
 #include <omp.h>
 #include <windows.h>
 
-#define ARQUIVO_ENTRADA "entradas/E-n101-k8.txt"
+#define ARQUIVO_ENTRADA "entradas/M-n151-k12.txt"
 #define NUMERO_GERACOES 3000
 #define PROB_MUTACAO    0.2
-#define TAM_POPULCAO    1000
+#define TAM_POPULCAO    105
 #define TAM_ELITE       0.1
-#define NUM_ISLANDS     1
+#define NUM_ISLANDS     12
 #define FREQ_MIGRACAO   350
 #define NUM_MIGRACAO    0.05
-#define TOPOLOGIA       "Malha"    
+#define TOPOLOGIA       "Anel"    
 #define SELECAO         "Roleta"  
 #define CROSSOVER       "PMX"      
 

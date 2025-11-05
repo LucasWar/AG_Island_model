@@ -62,6 +62,7 @@ private:
     void atualizarMelhorIndividuo(Ilha &ilha, int geracaoAtual);
     size_t calcularQuantidadeAPreservar(size_t tamPopulacao, double percentual);
 
+    vectorIndiviudos selecionarMigrantesMelhores(const vectorIndiviudos &populacao);
 
     std::vector<size_t> escolherIlhasMigrantes(vetorIlhas &ilhas, double probMigrar);
     std::vector<vectorIndiviudos> coletarMigrantes(vetorIlhas &ilhas, const std::vector<size_t> &ilhasMigrantes,int tamTorneio);

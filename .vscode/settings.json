@@ -58,6 +58,11 @@
         "variant": "cpp",
         "list": "cpp",
         "map": "cpp",
-        "cstdarg": "cpp"
+        "cstdarg": "cpp",
+        "condition_variable": "cpp",
+        "mutex": "cpp",
+        "semaphore": "cpp",
+        "stop_token": "cpp",
+        "thread": "cpp"
     }
 }

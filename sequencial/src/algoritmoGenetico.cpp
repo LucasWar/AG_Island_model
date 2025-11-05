@@ -57,7 +57,7 @@ void GeneticAlgorithm::executarAlgoritmo() {
         if(numInslands > 1){
             std::uniform_real_distribution<double> probMigracao(0.0, 1.0);
             for (auto &ilha : ilhas) {
-                if (probMigracao(ilha.geradorlocal) < 0.08) { // 5% chance por geração
+                if (probMigracao(ilha.geradorlocal) < 0.012) { // 5% chance por geração
                     realizarMigracao_Aprimorada(ilhas);
                 }
             }

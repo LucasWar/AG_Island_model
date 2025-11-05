@@ -40,7 +40,25 @@
 //     for (int i = 0; i < k; ++i)
 //         populacao[i] = selecionados[i];
 // }
+vectorIndiviudos GeneticAlgorithm::selecionarMigrantesMelhores(const vectorIndiviudos &populacao){
+     if (populacao.empty()) {
+        return {};
+    }
 
+    vectorIndiviudos copia = populacao;
+
+    // Ordena apenas os n melhores (menor fitness) no início do vetor
+    std::partial_sort(copia.begin(),
+                      copia.begin() + tamMigracao,
+                      copia.end(),
+                      [](const Individuo &a, const Individuo &b) {
+                          return a.fitness < b.fitness; // Minimização
+                      });
+
+    // Retorna apenas os n melhores (já ordenados)
+    return vectorIndiviudos(copia.begin(), copia.begin() + tamMigracao);
+    
+}
 vectorIndiviudos GeneticAlgorithm::selecionarMigrantes_Torneio(const vectorIndiviudos &populacao, std::mt19937 &gerador, int tamanhoTorneio) {
     if (populacao.empty()) {
         return {};
@@ -93,12 +111,13 @@ void GeneticAlgorithm::realizarMigracao_Aprimorada(vetorIlhas &ilhas) {
     if (ilhas.size() < 2) return;
 
     const int TAMANHO_TORNEIO = 3;
-    const double PROB_MIGRAR = 1.0; // 60% das ilhas migram a cada rodada
+    const double PROB_MIGRAR = 0.6; // 60% das ilhas migram a cada rodada
 
     // --- 1. Escolhe ilhas que migrarão nesta rodada ---
     auto ilhasMigrantes = escolherIlhasMigrantes(ilhas,PROB_MIGRAR);
     // --- 2. Seleciona migrantes de cada ilha ---
     auto migrantesPorIlha = coletarMigrantes(ilhas,ilhasMigrantes,TAMANHO_TORNEIO);
+    
     
     // --- 3. Envia migrantes para os vizinhos ---
     enviarMigrantes(ilhas,ilhasMigrantes,migrantesPorIlha);
@@ -121,16 +140,16 @@ std::vector<vectorIndiviudos> GeneticAlgorithm::coletarMigrantes(vetorIlhas &ilh
     std::vector<vectorIndiviudos> migrantesPorIlha(ilhas.size());
     for (size_t i : ilhasMigrantes) {
         auto &ilha = ilhas[i];
-        auto migrantes = selecionarMigrantes_Torneio(
-            ilha.populacao, ilha.geradorlocal, tamTorneio);
+        auto migrantes = selecionarMigrantes_Torneio(ilha.populacao, ilha.geradorlocal, tamTorneio);
+        //auto migrantes = selecionarMigrantesMelhores(ilha.populacao);
 
         // Mantém apenas 50% dos melhores migrantes
-        // std::sort(migrantes.begin(), migrantes.end(),
-        //           [](const Individuo &a, const Individuo &b) {
-        //               return a.fitness < b.fitness;
-        //           });
-        // if (migrantes.size() > 2)
-        //     migrantes.resize(migrantes.size() / 2);
+        std::sort(migrantes.begin(), migrantes.end(),
+                  [](const Individuo &a, const Individuo &b) {
+                      return a.fitness < b.fitness;
+                  });
+        if (migrantes.size() > 2)
+            migrantes.resize(migrantes.size() / 2);
 
         migrantesPorIlha[i] = std::move(migrantes);
     }

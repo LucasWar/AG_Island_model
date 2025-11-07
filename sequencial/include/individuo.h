@@ -4,7 +4,7 @@
 
 struct Individuo {
     std::vector<int> genes;
-    int fitness;
+    double fitness;
 
     Individuo();
     Individuo(std::vector<int> gen, double fit);

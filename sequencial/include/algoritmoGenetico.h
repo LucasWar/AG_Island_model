@@ -44,7 +44,7 @@ private:
     vectorIndiviudos selecionarMigrantesUnicos(const std::vector<Individuo>& populacao, std::mt19937& gerador);
     void realizarMigracao(vetorIlhas &ilhas);
     void migracaoPopulacao(vectorIndiviudos &populacao, const vectorIndiviudos &selecionados);
-    vectorIndiviudos selecionarMigrantes_Torneio(const vectorIndiviudos &populacao, std::mt19937 &gerador, int tamanhoTorneio);
+    vectorIndiviudos selecionarMigrantes_Torneio(const vectorIndiviudos &populacao, std::mt19937 &gerador, int tamanhoTorneio, double parcelaPop);
     void realizarMigracao_Aprimorada(vetorIlhas &ilhas);
     //std::vector<int> repararCVRP(const std::vector<int>& clientes);
     //std::vector<std::vector<int>> extrairRotas(const std::vector<int>& genes);
@@ -62,7 +62,7 @@ private:
     void atualizarMelhorIndividuo(Ilha &ilha, int geracaoAtual);
     size_t calcularQuantidadeAPreservar(size_t tamPopulacao, double percentual);
 
-    vectorIndiviudos selecionarMigrantesMelhores(const vectorIndiviudos &populacao);
+    vectorIndiviudos selecionarMigrantesMelhores(const vectorIndiviudos &populacao, const double parcelaPop);
 
     std::vector<size_t> escolherIlhasMigrantes(vetorIlhas &ilhas, double probMigrar);
     std::vector<vectorIndiviudos> coletarMigrantes(vetorIlhas &ilhas, const std::vector<size_t> &ilhasMigrantes,int tamTorneio);

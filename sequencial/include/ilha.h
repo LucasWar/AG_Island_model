@@ -10,7 +10,7 @@ struct Ilha {
     static int nextId;          // declaração apenas
     int idIlha;
     int seed;
-
+    int genMigracao;
     bool usaBuscaLocal = false;
 
     std::string tipoSelecao;

@@ -27,7 +27,7 @@ private:
 
     Individuo melhorIndividuo(vetorIlhas &ilha, int geracao);
 
-    vectorIndiviudos selecaoTorneio(vectorIndiviudos &populacao,std::mt19937 &geradorLocal);
+    vectorIndiviudos selecaoTorneio(vectorIndiviudos &populacao,std::mt19937 &geradorLocal,int tamTorneio);
     vectorIndiviudos selecaoRoleta(vectorIndiviudos &populacao,std::mt19937 &geradorLocal);
 
     // Individuo crossoverOX(const Individuo &pai1, const Individuo &pai2,std::mt19937 &geradorLocal);

@@ -18,7 +18,7 @@ struct Ilha {
     float proMutacao;
     std::unique_ptr<ICrossover> crossoverilha; 
     
-
+    int tamanhoTorneio = 2;
     std::vector<int> vizinhos;
     std::vector<Individuo> populacao;
     Individuo melhorIndividuoIlhaa;
@@ -26,6 +26,7 @@ struct Ilha {
     bool reset = false;
     int resetNum = 200;
     std::mt19937 geradorlocal;
+    std::vector<std::mt19937> geradorlocalThread;
     Ilha(int seed); // construtor
     void imprimirPopulacao();
 };

@@ -14,7 +14,7 @@
 typedef std::vector<Individuo> vectorIndiviudos;
 typedef std::vector<Ilha> vetorIlhas;
 
-vectorIndiviudos GeneticAlgorithm::selecaoTorneio(vectorIndiviudos &populacao, std::mt19937 &geradorLocal) {
+vectorIndiviudos GeneticAlgorithm::selecaoTorneio(vectorIndiviudos &populacao, std::mt19937 &geradorLocal, int tamTorneio) {
     // A seleção por torneio está correta e pode ser mantida.
     std::uniform_int_distribution<int> dist(0, populacao.size() - 1);
     vectorIndiviudos pais;
@@ -23,7 +23,7 @@ vectorIndiviudos GeneticAlgorithm::selecaoTorneio(vectorIndiviudos &populacao, s
     while (pais.size() < 2) {
         vectorIndiviudos candidatos;
         candidatos.reserve(2);
-        for (int i = 0; i < 2; ++i)
+        for (int i = 0; i < tamTorneio; ++i)
             candidatos.push_back(populacao[dist(geradorLocal)]);
 
         auto melhor = *std::min_element(candidatos.begin(), candidatos.end(),
@@ -102,7 +102,7 @@ void GeneticAlgorithm::executarGeracao(Ilha &ilha, std::uniform_real_distributio
     for (int i = 0; i < numFilhos; ++i) {
         auto pais = (ilha.tipoSelecao == "Roleta") ?
                     selecaoRoleta(ilha.populacao, ilha.geradorlocal) :
-                    selecaoTorneio(ilha.populacao, ilha.geradorlocal);
+                    selecaoTorneio(ilha.populacao, ilha.geradorlocal,ilha.tamanhoTorneio);
 
         Individuo filho = ilha.crossoverilha->aplicar(
             pais[0], pais[1], ilha.geradorlocal, dataCVRP, ilha.usaBuscaLocal);

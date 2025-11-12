@@ -42,12 +42,12 @@ void GeneticAlgorithm::executarAlgoritmo() {
     std::cout << "Melhor fitness inicial: " << melhor.fitness << std::endl;
 
     for (int geracao = 0; geracao < numGeracoes; ++geracao) {
-        #pragma omp parallel for
-        for (auto &ilha : ilhas)
-            if(ilha.reset == true){
-                reiniciarPopulacoes(ilha,geracao);
-                ilha.reset = false;
-            }
+        // #pragma omp parallel for
+        // for (auto &ilha : ilhas)
+        //     if(ilha.reset == true){
+        //         reiniciarPopulacoes(ilha,geracao);
+        //         ilha.reset = false;
+        //     }
         
         #pragma omp parallel for schedule(dynamic)
         for (auto &ilha : ilhas){
@@ -57,8 +57,9 @@ void GeneticAlgorithm::executarAlgoritmo() {
         if(numInslands > 1){
             std::uniform_real_distribution<double> probMigracao(0.0, 1.0);
             for (auto &ilha : ilhas) {
-                if (probMigracao(ilha.geradorlocal) < 0.02) { // 5% chance por geração
+                if (probMigracao(ilha.geradorlocal) < 0.15) { // 5% chance por geração
                     realizarMigracao_Aprimorada(ilhas);
+                    break;
                 }
             }
         }

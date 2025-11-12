@@ -5,21 +5,21 @@
 #include <omp.h>
 #include <windows.h>
 
-#define ARQUIVO_ENTRADA "entradas/M-n200-k17.txt"
+#define ARQUIVO_ENTRADA "entradas/X-n143-k7.txt"
 #define NUMERO_GERACOES 3000
 #define PROB_MUTACAO    0.2
-#define TAM_POPULCAO    125
+#define TAM_POPULCAO    63
 #define TAM_ELITE       0.08
-#define NUM_ISLANDS     16
+#define NUM_ISLANDS     32
 #define FREQ_MIGRACAO   350
 #define NUM_MIGRACAO    0.05
 #define TOPOLOGIA       "Malha"    
-#define SELECAO         "Roleta"  
+#define SELECAO         "Torneio"  
 #define CROSSOVER       "PMX"      
 
 int main() {
     SetConsoleOutputCP(CP_UTF8);
-    int numExecucoes = 20;
+    int numExecucoes = 10;
     int seedSize = 18;
 
     for(int i = 0; i < numExecucoes; i++){

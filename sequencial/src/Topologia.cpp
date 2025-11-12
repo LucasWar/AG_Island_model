@@ -26,23 +26,29 @@ std::vector<Ilha> Topologia::criarTopologia(std::string opcTopologia, int numIlh
     std::uniform_real_distribution<double> probMutGerador(0.2, 0.6);
     if(ilhas.size() > 1){
         for (auto &ilha : ilhas) {
-            ilha.proMutacao = probMutGerador(ilha.geradorlocal);
-            // Alternância forçada entre OX e PMX para diversidade
             if (ilha.idIlha % 3 == 0) {
+                // ILHA 0: Intensificadora (Alta Pressão + 2-Opt)
                 ilha.tipoSelecao = "Torneio";
+                ilha.tamanhoTorneio = 5; // Alta pressão de seleção
                 ilha.proMutacao = 0.15;
                 ilha.crossoverilha = std::make_unique<PMXCrossover>();
-                ilha.usaBuscaLocal = true;
+                ilha.usaBuscaLocal = true; // 2-Opt ativado
+
             } else if (ilha.idIlha % 3 == 1) {
-                ilha.tipoSelecao = "Roleta";
+                // ILHA 1: Exploradora (Baixa Pressão + Sem 2-Opt)
+                ilha.tipoSelecao = "Roleta"; // Baixa pressão de seleção
+                // ilha.tamanhoTorneio = 2; (não usado pela roleta)
                 ilha.proMutacao = 0.05;
                 ilha.crossoverilha = std::make_unique<OXCrossover>();
-                ilha.usaBuscaLocal = false;
+                ilha.usaBuscaLocal = false; // 2-Opt desativado (explora mais)
+
             } else {
-                ilha.tipoSelecao = "Elitista";
-                ilha.proMutacao = 0.25;
+                // ILHA 2: Híbrida (Pressão Média + 2-Opt)
+                ilha.tipoSelecao = "Torneio";
+                ilha.tamanhoTorneio = 3; // Pressão de seleção média
+                ilha.proMutacao = 0.25; // Taxa de mutação mais alta
                 ilha.crossoverilha = std::make_unique<RBXCrossover>();
-                ilha.usaBuscaLocal = true;
+                ilha.usaBuscaLocal = true; // 2-Opt ativado
             }
         }    
     }

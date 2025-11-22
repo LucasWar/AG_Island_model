@@ -27,23 +27,20 @@ std::vector<Ilha> Topologia::criarTopologia(std::string opcTopologia, int numIlh
     if(ilhas.size() > 1){
         for (auto &ilha : ilhas) {
             if (ilha.idIlha % 3 == 0) {
-                // ILHA 0: Intensificadora (Alta Pressão + 2-Opt)
                 ilha.tipoSelecao = "Torneio";
-                ilha.tamanhoTorneio = 5; // Alta pressão de seleção
+                ilha.tamanhoTorneio = 5;
                 ilha.proMutacao = 0.15;
                 ilha.crossoverilha = std::make_unique<PMXCrossover>();
                 ilha.usaBuscaLocal = true; // 2-Opt ativado
 
             } else if (ilha.idIlha % 3 == 1) {
-                // ILHA 1: Exploradora (Baixa Pressão + Sem 2-Opt)
-                ilha.tipoSelecao = "Roleta"; // Baixa pressão de seleção
-                // ilha.tamanhoTorneio = 2; (não usado pela roleta)
-                ilha.proMutacao = 0.05;
-                ilha.crossoverilha = std::make_unique<OXCrossover>();
-                ilha.usaBuscaLocal = false; // 2-Opt desativado (explora mais)
+                ilha.tipoSelecao = "Torneio"; 
+                ilha.tamanhoTorneio = 2;     
+                ilha.proMutacao = 0.50;      
+                ilha.crossoverilha = std::make_unique<PMXCrossover>(); 
+                ilha.usaBuscaLocal = true;   
 
             } else {
-                // ILHA 2: Híbrida (Pressão Média + 2-Opt)
                 ilha.tipoSelecao = "Torneio";
                 ilha.tamanhoTorneio = 3; // Pressão de seleção média
                 ilha.proMutacao = 0.25; // Taxa de mutação mais alta
@@ -65,6 +62,7 @@ std::vector<Ilha> Topologia::criarTopologia(std::string opcTopologia, int numIlh
         } else {
             ilha->crossoverilha = std::make_unique<RBXCrossover>();
         }
+        ilha->tamanhoTorneio = 3;
         ilha->proMutacao = 0.25;
         ilha->usaBuscaLocal = true;
         std::cout << "Crossover selecionado: " << crossover << std::endl;

@@ -141,8 +141,8 @@ std::vector<vectorIndiviudos> GeneticAlgorithm::coletarMigrantes(vetorIlhas &ilh
     std::vector<vectorIndiviudos> migrantesPorIlha(ilhas.size());
     for (size_t i : ilhasMigrantes) {
         auto &ilha = ilhas[i];
-        auto migrantesTorneio = selecionarMigrantes_Torneio(ilha.populacao, ilha.geradorlocal, tamTorneio,0.04);
-        auto migrantesMelhores = selecionarMigrantesMelhores(ilha.populacao,0.01);
+        auto migrantesTorneio = selecionarMigrantes_Torneio(ilha.populacao, ilha.geradorlocal, tamTorneio,0.05);
+        //auto migrantesMelhores = selecionarMigrantesMelhores(ilha.populacao,0.01);
         vectorIndiviudos migrantes;
         // Mantém apenas 50% dos melhores migrantes
         // std::sort(migrantes.begin(), migrantes.end(),
@@ -152,9 +152,9 @@ std::vector<vectorIndiviudos> GeneticAlgorithm::coletarMigrantes(vetorIlhas &ilh
         // if (migrantes.size() > 2)
         //     migrantes.resize(migrantes.size() / 2);
 
-        migrantes.reserve(migrantesTorneio.size() + migrantesMelhores.size());
+        //migrantes.reserve(migrantesTorneio.size() + migrantesMelhores.size());
         migrantes.insert(migrantes.end(), migrantesTorneio.begin(), migrantesTorneio.end());
-        migrantes.insert(migrantes.end(), migrantesMelhores.begin(), migrantesMelhores.end());
+        //migrantes.insert(migrantes.end(), migrantesMelhores.begin(), migrantesMelhores.end());
         migrantesPorIlha[i] = std::move(migrantes);
     }
 

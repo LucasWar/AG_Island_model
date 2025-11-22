@@ -71,60 +71,127 @@ vectorIndiviudos GeneticAlgorithm::selecionarElite(vectorIndiviudos &populacao){
     return copia;
 }
 
+// void GeneticAlgorithm::executarGeracao(Ilha &ilha, std::uniform_real_distribution<double> &distLocal) {
+//     if (ilha.populacao.empty()) return;
+
+//     // --- 1. Seleciona elite ---
+//     vectorIndiviudos elite = selecionarElite(ilha.populacao);
+
+//     // --- 2. Se a elite já cobre a população, apenas mantém ---
+//     if (elite.size() >= tamPopulacao) {
+//         ilha.populacao = elite;
+//         return;
+//     }
+
+//     // --- 3. Adaptação da taxa de mutação (diversidade adaptativa) ---
+//     double diversidade = calcularDiversidade(ilha.populacao);
+//     double taxaMutacao = ilha.proMutacao;
+//     if (diversidade < 0.2) // baixa diversidade
+//         taxaMutacao *= 1.5;
+//     else if (diversidade > 0.5)
+//         taxaMutacao *= 0.8;
+//     taxaMutacao = std::clamp(taxaMutacao, 0.001, 0.5);
+
+//     // --- 4. Geração dos filhos ---
+//     vectorIndiviudos novaPop;
+//     novaPop.reserve(tamPopulacao);
+//     novaPop.insert(novaPop.end(), elite.begin(), elite.end());
+
+//     const int numFilhos = tamPopulacao - elite.size();
+//     for (int i = 0; i < numFilhos; ++i) {
+//         auto pais = (ilha.tipoSelecao == "Roleta") ?
+//                     selecaoRoleta(ilha.populacao, ilha.geradorlocal) :
+//                     selecaoTorneio(ilha.populacao, ilha.geradorlocal,ilha.tamanhoTorneio);
+
+//         Individuo filho = ilha.crossoverilha->aplicar(
+//             pais[0], pais[1], ilha.geradorlocal, dataCVRP, ilha.usaBuscaLocal);
+
+//         // Mutação com probabilidade adaptada
+//         if (distLocal(ilha.geradorlocal) < taxaMutacao) {
+//             mutacaoCVRP(filho, ilha.geradorlocal);
+//         }
+
+//         // Mutação extra em caso de duplicatas (evita clones)
+//         bool duplicado = std::any_of(novaPop.begin(), novaPop.end(),
+//             [&](const Individuo &ind) { return ind.genes == filho.genes; });
+//         if (duplicado && distLocal(ilha.geradorlocal) < 0.3)
+//             mutacaoCVRP(filho, ilha.geradorlocal);
+
+//         novaPop.push_back(std::move(filho));
+//     }
+//     // --- 5. Atualiza população ---
+//     ilha.populacao = std::move(novaPop);
+// }
+
+
+
 void GeneticAlgorithm::executarGeracao(Ilha &ilha, std::uniform_real_distribution<double> &distLocal) {
     if (ilha.populacao.empty()) return;
 
-    // --- 1. Seleciona elite ---
-    vectorIndiviudos elite = selecionarElite(ilha.populacao);
+    const int tamPop = tamPopulacao;
 
-    // --- 2. Se a elite já cobre a população, apenas mantém ---
-    if (elite.size() >= tamPopulacao) {
-        ilha.populacao = elite;
+    // --- 1. Seleção da elite ---
+    vectorIndiviudos elite = selecionarElite(ilha.populacao);
+    if (elite.size() >= tamPop) {
+        ilha.populacao = std::move(elite);
         return;
     }
 
-    // --- 3. Adaptação da taxa de mutação (diversidade adaptativa) ---
-    double diversidade = calcularDiversidade(ilha.populacao);
+    // --- 2. Diversidade adaptativa ---
+    double diversidade = 0.0;
+    static const int kDiversidade = 5; // a cada 5 gerações
+    if (ilha.geracaoUltimaEvolucao % kDiversidade == 0)
+        diversidade = calcularDiversidade(ilha.populacao);
+
     double taxaMutacao = ilha.proMutacao;
-    if (diversidade < 0.2) // baixa diversidade
-        taxaMutacao *= 1.5;
-    else if (diversidade > 0.5)
-        taxaMutacao *= 0.8;
+    if (diversidade < 0.2) taxaMutacao *= 1.5;
+    else if (diversidade > 0.5) taxaMutacao *= 0.8;
     taxaMutacao = std::clamp(taxaMutacao, 0.001, 0.5);
 
-    // --- 4. Geração dos filhos ---
+    // --- 3. Preparar população nova ---
     vectorIndiviudos novaPop;
-    novaPop.reserve(tamPopulacao);
+    novaPop.reserve(tamPop);
     novaPop.insert(novaPop.end(), elite.begin(), elite.end());
 
-    const int numFilhos = tamPopulacao - elite.size();
+    std::unordered_set<size_t> hashesPop;
+    for (const auto &ind : novaPop)
+        hashesPop.insert(hashGenes(ind.genes));
 
+    // --- 4. Pré-calcular inverso de fitness para roleta ---
+    std::vector<double> invFitness;
+    if (ilha.tipoSelecao == "Roleta") {
+        invFitness.reserve(ilha.populacao.size());
+        for (auto &ind : ilha.populacao)
+            invFitness.push_back(1.0 / ind.fitness);
+    }
+
+    const int numFilhos = tamPop - static_cast<int>(novaPop.size());
+
+    // --- 5. Loop de criação dos filhos (sequencial) ---
     for (int i = 0; i < numFilhos; ++i) {
-        auto pais = (ilha.tipoSelecao == "Roleta") ?
-                    selecaoRoleta(ilha.populacao, ilha.geradorlocal) :
-                    selecaoTorneio(ilha.populacao, ilha.geradorlocal,ilha.tamanhoTorneio);
+        vectorIndiviudos pais = (ilha.tipoSelecao == "Roleta") ?
+                                 selecaoRoleta(ilha.populacao, ilha.geradorlocal) :
+                                 selecaoTorneio(ilha.populacao, ilha.geradorlocal, ilha.tamanhoTorneio);
 
         Individuo filho = ilha.crossoverilha->aplicar(
-            pais[0], pais[1], ilha.geradorlocal, dataCVRP, ilha.usaBuscaLocal);
+            pais[0], pais[1], ilha.geradorlocal, dataCVRP, ilha.usaBuscaLocal
+        );
 
-        // Mutação com probabilidade adaptada
-        if (distLocal(ilha.geradorlocal) < taxaMutacao) {
+        if (distLocal(ilha.geradorlocal) < taxaMutacao)
             mutacaoCVRP(filho, ilha.geradorlocal);
-        }
 
-        // Mutação extra em caso de duplicatas (evita clones)
-        bool duplicado = std::any_of(novaPop.begin(), novaPop.end(),
-            [&](const Individuo &ind) { return ind.genes == filho.genes; });
-        if (duplicado && distLocal(ilha.geradorlocal) < 0.3)
+        size_t hashFilho = hashGenes(filho.genes);
+        if (hashesPop.count(hashFilho) && distLocal(ilha.geradorlocal) < 0.3)
             mutacaoCVRP(filho, ilha.geradorlocal);
 
         novaPop.push_back(std::move(filho));
+        hashesPop.insert(hashFilho);
     }
 
-    // --- 5. Atualiza população ---
+    // --- 6. Atualiza a população da ilha ---
     ilha.populacao = std::move(novaPop);
+    ilha.geracaoUltimaEvolucao++;
 }
-
 
 
 double GeneticAlgorithm::calcularDiversidade(const vectorIndiviudos &pop) {

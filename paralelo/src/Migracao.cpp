@@ -6,40 +6,6 @@
 #include <algorithm>
 #include <unordered_set>
 
-// vectorIndiviudos GeneticAlgorithm::selecionarMigrantesUnicos(const vectorIndiviudos &populacao, std::mt19937 &gerador) {
-//     vectorIndiviudos selecionados;
-//     std::unordered_set<size_t> hashesVistos;
-
-//     std::vector<int> indices(populacao.size());
-//     std::iota(indices.begin(), indices.end(), 0);
-//     std::shuffle(indices.begin(), indices.end(), gerador);
-
-//     for (int idx : indices) {
-//         const auto &ind = populacao[idx];
-//         size_t h = hashGenes(ind.genes);
-//         if (hashesVistos.find(h) == hashesVistos.end()) {
-//             hashesVistos.insert(h);
-//             selecionados.push_back(ind);
-//         }
-//         if (selecionados.size() >= tamMigracao) break;
-//     }
-    
-//     return selecionados;
-// }
-
-// void GeneticAlgorithm::migracaoPopulacao(vectorIndiviudos &populacao, const vectorIndiviudos &selecionados) {
-//     int k = selecionados.size();
-//     if (k == 0 || populacao.empty()) return;
-
-//     if (k > populacao.size()) k = populacao.size();
-
-//     // Ordena população para trazer os piores para frente
-//     std::partial_sort(populacao.begin(), populacao.begin() + k, populacao.end(),
-//                       [](const Individuo &a, const Individuo &b){ return a.fitness < b.fitness; });
-
-//     for (int i = 0; i < k; ++i)
-//         populacao[i] = selecionados[i];
-// }
 vectorIndiviudos GeneticAlgorithm::selecionarMigrantesMelhores(const vectorIndiviudos &populacao, const double parcelaPop){
      if (populacao.empty()) {
         return {};
@@ -142,19 +108,11 @@ std::vector<vectorIndiviudos> GeneticAlgorithm::coletarMigrantes(vetorIlhas &ilh
     for (size_t i : ilhasMigrantes) {
         auto &ilha = ilhas[i];
         auto migrantesTorneio = selecionarMigrantes_Torneio(ilha.populacao, ilha.geradorlocal, tamTorneio,0.05);
-        //auto migrantesMelhores = selecionarMigrantesMelhores(ilha.populacao,0.01);
+        
         vectorIndiviudos migrantes;
-        // Mantém apenas 50% dos melhores migrantes
-        // std::sort(migrantes.begin(), migrantes.end(),
-        //           [](const Individuo &a, const Individuo &b) {
-        //               return a.fitness < b.fitness;
-        //           });
-        // if (migrantes.size() > 2)
-        //     migrantes.resize(migrantes.size() / 2);
 
-        //migrantes.reserve(migrantesTorneio.size() + migrantesMelhores.size());
         migrantes.insert(migrantes.end(), migrantesTorneio.begin(), migrantesTorneio.end());
-        //migrantes.insert(migrantes.end(), migrantesMelhores.begin(), migrantesMelhores.end());
+
         migrantesPorIlha[i] = std::move(migrantes);
     }
 

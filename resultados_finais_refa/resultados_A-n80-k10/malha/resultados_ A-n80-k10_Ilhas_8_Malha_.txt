@@ -14,7 +14,7 @@ Solucão valida: Sim
  ===================================================RESULTADOS=========================================================
 Melhor fitness final: 1798
 Melhor fitness possivel: 1763
-Tempo de execução: 56
+Tempo de execução: 63
 Melhor solução encontrada: 0 73 36 66 67 38 49 0 42 3 39 74 13 0 63 24 6 30 23 62 0 68 43 16 61 57 19 47 26 35 65 69 56 33 0 12 44 5 59 27 17 31 60 77 51 0 76 72 54 9 55 15 41 25 46 64 0 29 75 20 78 8 37 2 34 52 11 0 58 32 4 22 45 50 70 53 0 71 28 79 18 48 14 10 0 40 21 7 1 0 
 Solução encontrada considerada boa
 GAP de 1.98525
@@ -26,7 +26,7 @@ Solucão valida: Sim
  ===================================================RESULTADOS=========================================================
 Melhor fitness final: 1804
 Melhor fitness possivel: 1763
-Tempo de execução: 54
+Tempo de execução: 70
 Melhor solução encontrada: 0 24 6 8 37 2 34 11 10 0 31 20 75 57 61 16 43 68 78 30 0 63 62 23 5 44 12 0 36 70 50 45 22 4 32 58 0 76 72 54 9 55 56 69 65 35 26 19 47 77 51 0 71 14 48 18 79 28 52 0 42 53 67 66 38 73 49 0 13 29 27 59 46 25 41 15 33 64 0 3 39 60 17 74 0 40 21 7 1 0 
 Solução encontrada considerada boa
 GAP de 2.32558
@@ -38,7 +38,7 @@ Solucão valida: Sim
  ===================================================RESULTADOS=========================================================
 Melhor fitness final: 1799
 Melhor fitness possivel: 1763
-Tempo de execução: 58
+Tempo de execução: 70
 Melhor solução encontrada: 0 73 36 53 67 66 38 49 0 63 11 24 6 30 59 31 0 62 23 12 44 5 29 74 0 58 32 4 22 45 50 76 0 13 3 60 39 42 0 10 71 28 79 18 48 14 0 33 56 69 65 35 26 47 19 57 61 16 43 68 0 51 77 64 46 25 41 15 55 9 54 72 70 0 52 34 2 37 8 78 20 75 27 17 0 40 21 7 1 0 
 Solução encontrada considerada boa
 GAP de 2.04197
@@ -50,7 +50,7 @@ Solucão valida: Sim
  ===================================================RESULTADOS=========================================================
 Melhor fitness final: 1817
 Melhor fitness possivel: 1763
-Tempo de execução: 61
+Tempo de execução: 73
 Melhor solução encontrada: 0 77 39 60 64 41 15 55 9 54 72 0 17 31 46 25 75 20 59 27 0 13 12 23 11 63 62 0 71 14 48 18 79 28 52 0 49 38 67 66 53 36 73 0 10 34 2 37 8 78 30 6 24 0 68 43 16 61 57 19 47 26 35 65 69 56 33 0 42 51 3 74 29 5 44 0 58 32 4 22 45 50 76 70 0 40 21 7 1 0 
 Solução encontrada considerada boa
 GAP de 3.06296
@@ -62,7 +62,7 @@ Solucão valida: Sim
  ===================================================RESULTADOS=========================================================
 Melhor fitness final: 1794
 Melhor fitness possivel: 1763
-Tempo de execução: 59
+Tempo de execução: 67
 Melhor solução encontrada: 0 60 46 25 41 47 19 26 35 65 69 56 15 64 77 51 0 71 14 48 18 79 28 52 0 30 78 68 43 16 61 57 75 20 31 0 10 11 34 2 37 8 6 24 0 49 58 32 4 22 45 50 70 0 39 33 55 9 54 72 76 38 0 73 36 66 67 53 42 13 0 12 44 5 23 62 63 0 3 74 17 27 59 29 0 40 21 7 1 0 
 Solução encontrada considerada boa
 GAP de 1.75837
@@ -74,7 +74,7 @@ Solucão valida: Sim
  ===================================================RESULTADOS=========================================================
 Melhor fitness final: 1792
 Melhor fitness possivel: 1763
-Tempo de execução: 60
+Tempo de execução: 70
 Melhor solução encontrada: 0 64 33 56 69 65 35 26 47 19 57 61 16 43 78 0 13 42 53 36 73 49 0 38 32 4 22 45 50 0 46 25 41 15 55 9 54 72 76 58 0 24 6 30 59 27 17 29 0 71 14 48 18 79 28 52 0 3 74 60 39 70 67 66 0 10 63 62 23 5 44 12 0 11 34 2 37 8 68 20 75 31 77 51 0 1 7 21 40 0 
 Solução encontrada considerada boa
 GAP de 1.64492
@@ -86,7 +86,7 @@ Solucão valida: Sim
  ===================================================RESULTADOS=========================================================
 Melhor fitness final: 1832
 Melhor fitness possivel: 1763
-Tempo de execução: 59
+Tempo de execução: 69
 Melhor solução encontrada: 0 2 37 8 43 26 35 65 69 56 9 54 72 0 31 20 75 47 19 57 61 16 68 78 0 17 27 59 30 6 24 34 10 0 58 32 4 22 45 50 76 70 0 42 3 74 29 5 44 0 71 14 48 18 79 28 52 0 73 36 53 67 66 38 49 0 60 46 25 41 15 55 33 64 39 77 51 0 13 12 23 11 63 62 0 40 21 7 1 0 
 Solução encontrada considerada boa
 GAP de 3.91378
@@ -98,7 +98,7 @@ Solucão valida: Sim
  ===================================================RESULTADOS=========================================================
 Melhor fitness final: 1788
 Melhor fitness possivel: 1763
-Tempo de execução: 62
+Tempo de execução: 72
 Melhor solução encontrada: 0 30 78 68 43 16 61 75 20 59 27 0 12 44 5 23 62 63 0 57 19 47 26 35 65 69 56 55 9 54 72 0 64 33 15 41 25 46 31 17 29 74 0 49 38 67 66 53 36 73 0 42 51 77 39 60 3 13 0 71 14 48 18 79 28 52 0 24 6 8 37 2 34 11 10 0 70 76 50 45 22 4 32 58 0 1 7 21 40 0 
 Solução encontrada considerada boa
 GAP de 1.41804
@@ -110,7 +110,7 @@ Solucão valida: Sim
  ===================================================RESULTADOS=========================================================
 Melhor fitness final: 1830
 Melhor fitness possivel: 1763
-Tempo de execução: 59
+Tempo de execução: 72
 Melhor solução encontrada: 0 60 46 20 75 25 41 15 33 64 39 0 13 12 44 5 23 62 0 38 54 9 55 56 69 65 35 26 19 47 0 58 32 4 22 45 50 72 76 0 52 28 79 18 48 14 71 0 6 30 78 68 43 16 61 57 31 51 0 29 59 27 17 74 3 77 0 49 73 36 66 67 70 53 42 0 24 8 37 2 34 11 63 10 0 1 7 21 40 0 
 Solução encontrada considerada boa
 GAP de 3.80034

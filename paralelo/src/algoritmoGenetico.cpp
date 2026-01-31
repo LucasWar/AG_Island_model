@@ -14,77 +14,6 @@ GeneticAlgorithm::GeneticAlgorithm(int nGen, float pMut, int tPop, float nElite,
     tamIndividuo = dataCVRP.distancias.empty() ? 0 : dataCVRP.distancias.size(); 
 }
 
-// void GeneticAlgorithm::executarAlgoritmo() {
-//     //std::cout << "Frequencia de migração: "<< freqMigracao << std::endl;
-//     int numGerSemEvo = 0;
-//     int auxNumGerSemEvo = 0;
-
-//     std::uniform_real_distribution<double> distLocal(0, 1);
-//     Topologia topologia;
-//     std::cout << "==================================================TOPOLOGIA=========================================================" << std::endl;
-//     auto ilhas = topologia.criarTopologia(opcTopologia,numInslands,seed,opcCrossover,opcSelecao);
-//     if(ilhas.size() == 0){
-//         throw std::runtime_error("Erro: Nenhuma ilha foi criada. Verifique os parâmetros da topologia.");
-//     }
-//     std::cout << "Numero de individuos por ilha: "<< tamPopulacao << std::endl;
-//     std::cout << "Preservação de elite: "<< tamElite << std::endl;
-
-//     std::cout << "====================================================================================================================" <<  "\n" << std::endl;
-    
-//     std::cout << "===================================================EXECUCAO=========================================================" <<  "\n" << std::endl;
-
-//     auto inicio = std::chrono::high_resolution_clock::now();
-//     std::cout << "Gerando população inicial..." << std::endl;
-//     gerarPopulacaoDiversificada(ilhas);
-//     std::cout << "População inicial gerada." << std::endl;
-
-//     Individuo melhor = melhorIndividuo(ilhas,0);
-//     std::cout << "Melhor fitness inicial: " << melhor.fitness << std::endl;
-
-//     for (int geracao = 0; geracao < numGeracoes; ++geracao) {
-//         // #pragma omp parallel for
-//         // for (auto &ilha : ilhas)
-//         //     if(ilha.reset == true){
-//         //         reiniciarPopulacoes(ilha,geracao);
-//         //         ilha.reset = false;
-//         //     }
-        
-//         #pragma omp parallel for schedule(dynamic)
-//         for (auto &ilha : ilhas){
-//             executarGeracao(ilha, distLocal);
-//         }
-
-//         if(numInslands > 1){
-//             std::uniform_real_distribution<double> probMigracao(0.0, 1.0);
-//             for (auto &ilha : ilhas) {
-//                 if (probMigracao(ilha.geradorlocal) < 0.15) { // 5% chance por geração
-//                     realizarMigracao_Aprimorada(ilhas);
-//                     break;
-//                 }
-//             }
-//         }
-
-//         auto auxMelhor = melhorIndividuo(ilhas, geracao);
-//         if (auxMelhor.fitness < melhor.fitness) {
-//             melhor = auxMelhor;
-//             if (auxNumGerSemEvo > numGerSemEvo) {
-//                 numGerSemEvo = auxNumGerSemEvo;
-//             }
-//             auxNumGerSemEvo = 0;
-//             //std::cout << "Geração " << geracao + 1 << " | Novo melhor fitness: " << melhor.fitness << std::endl;
-//         } else {
-//             auxNumGerSemEvo++;
-//         }
-
-//     }
-//     auto fim = std::chrono::high_resolution_clock::now();
-//     std::chrono::duration<double> duracao = fim - inicio;
-//     int teste = dataCVRP.solucaoOtima;
-//     int duracao_s = std::chrono::duration_cast<std::chrono::seconds>(duracao).count();
-//     salvarResultados(melhor, teste, duracao_s, numGerSemEvo, melhor.genes, dataCVRP, numInslands);
-// }
-
-
 
 void GeneticAlgorithm::executarAlgoritmo() {
     //std::cout << "Frequencia de migração: "<< freqMigracao << std::endl;
@@ -113,29 +42,24 @@ void GeneticAlgorithm::executarAlgoritmo() {
     Individuo melhor = melhorIndividuo(ilhas,0);
     std::cout << "Melhor fitness inicial: " << melhor.fitness << std::endl;
 
-    #pragma omp parallel shared(ilhas, numGeracoes, melhor, numInslands, auxNumGerSemEvo, numGerSemEvo, dataCVRP, std::cout) num_threads(numInslands)  // <-- define o número de threads aqui
+    #pragma omp parallel shared(ilhas, numGeracoes, melhor, numInslands, auxNumGerSemEvo, numGerSemEvo, dataCVRP, std::cout) num_threads(numInslands) 
     {
-        // Cada thread terá SUA cópia desses objetos
+
         std::uniform_real_distribution<double> distLocal(0.0, 1.0);
 
         for (int geracao = 0; geracao < numGeracoes; ++geracao) {
 
-            // =====================================================
-            // 1. EXECUÇÃO PARALELA DAS ILHAS
-            // =====================================================
+
+            //EXECUÇÃO PARALELA DAS ILHAS
             #pragma omp for schedule(static)
             for (int i = 0; i < (int)ilhas.size(); i++) {
-
-                // Debug opcional
                 //printf("Thread %d -> executando ilha %d\n", omp_get_thread_num(), i);
-
                 executarGeracao(ilhas[i], distLocal);
             }
 
 
-            // =====================================================
-            // 2. MIGRAÇÃO (executada apenas por 1 thread)
-            // =====================================================
+
+            //MIGRAÇÃO (executada apenas por 1 thread)
             #pragma omp single
             {
                 if (numInslands > 1) {
@@ -151,9 +75,8 @@ void GeneticAlgorithm::executarAlgoritmo() {
             }
 
 
-            // =====================================================
-            // 3. AVALIAÇÃO DO MELHOR INDIVÍDUO (apenas 1 thread)
-            // =====================================================
+
+            //AVALIAÇÃO DO MELHOR INDIVÍDUO (apenas 1 thread)
             #pragma omp single
             {
                 auto auxMelhor = melhorIndividuo(ilhas, geracao);
@@ -175,4 +98,221 @@ void GeneticAlgorithm::executarAlgoritmo() {
     int teste = dataCVRP.solucaoOtima;
     int duracao_s = std::chrono::duration_cast<std::chrono::seconds>(duracao).count();
     salvarResultados(melhor, teste, duracao_s, numGerSemEvo, melhor.genes, dataCVRP, numInslands,opcTopologia);
+}
+
+
+
+
+
+void GeneticAlgorithm::executarAlgoritmoTime() {
+
+    int numGerSemEvo = 0;
+    int auxNumGerSemEvo = 0;
+
+    Topologia topologia;
+
+    std::cout << "==================================================TOPOLOGIA=========================================================\n";
+    auto ilhas = topologia.criarTopologia(
+        opcTopologia, numInslands, seed, opcCrossover, opcSelecao
+    );
+
+    if (ilhas.empty()) {
+        throw std::runtime_error("Erro: Nenhuma ilha foi criada. Verifique os parâmetros da topologia.");
+    }
+
+    std::cout << "Numero de individuos por ilha: " << tamPopulacao << std::endl;
+    std::cout << "Preservação de elite: " << tamElite << std::endl;
+    std::cout << "====================================================================================================================\n\n";
+
+    std::cout << "===================================================EXECUCAO=========================================================\n\n";
+
+    auto inicioExecucao = std::chrono::steady_clock::now();
+    const int LIMITE_TEMPO = 200; // segundos
+
+    std::cout << "Gerando população inicial..." << std::endl;
+    gerarPopulacaoDiversificada(ilhas);
+    std::cout << "População inicial gerada." << std::endl;
+
+    Individuo melhor = melhorIndividuo(ilhas, 0);
+    std::cout << "Melhor fitness inicial: " << melhor.fitness << std::endl;
+
+    // 🔴 FLAG DE PARADA COMPARTILHADA
+    bool parar = false;
+
+    #pragma omp parallel shared(ilhas, melhor, numGerSemEvo, auxNumGerSemEvo, parar, dataCVRP) num_threads(numInslands)
+    {
+        std::uniform_real_distribution<double> distLocal(0.0, 1.0);
+        int geracao = 0;
+
+        while (true) {
+
+            // ================= CONTROLE DE TEMPO =================
+            #pragma omp single
+            {
+                auto agora = std::chrono::steady_clock::now();
+                auto tempoDecorrido = std::chrono::duration_cast<std::chrono::seconds>(
+                    agora - inicioExecucao
+                ).count();
+
+                if (tempoDecorrido >= LIMITE_TEMPO) {
+                    parar = true;
+                }
+            }
+
+            // 🔒 GARANTE QUE TODAS VEJAM "parar"
+            #pragma omp barrier
+            if (parar) break;
+
+            // ================= EXECUÇÃO DAS ILHAS =================
+            #pragma omp for schedule(static)
+            for (int i = 0; i < (int)ilhas.size(); i++) {
+                executarGeracao(ilhas[i], distLocal);
+            }
+
+            // ================= MIGRAÇÃO =================
+            #pragma omp single
+            {
+                if (numInslands > 1) {
+                    std::uniform_real_distribution<double> probMigracao(0.0, 1.0);
+                    for (auto &ilha : ilhas) {
+                        if (probMigracao(ilha.geradorlocal) < 0.15) {
+                            realizarMigracao_Aprimorada(ilhas);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // ================= MELHOR INDIVÍDUO =================
+            #pragma omp single
+            {
+                auto auxMelhor = melhorIndividuo(ilhas, geracao);
+
+                if (auxMelhor.fitness < melhor.fitness) {
+                    melhor = auxMelhor;
+                    auxNumGerSemEvo = 0;
+                } else {
+                    auxNumGerSemEvo++;
+                }
+
+                numGerSemEvo = std::max(numGerSemEvo, auxNumGerSemEvo);
+            }
+
+            geracao++;
+        }
+    }
+
+    auto fim = std::chrono::steady_clock::now();
+    std::chrono::duration<double> duracao = fim - inicioExecucao;
+
+    int duracao_s = std::chrono::duration_cast<std::chrono::seconds>(duracao).count();
+    int solucaoOtima = dataCVRP.solucaoOtima;
+
+    salvarResultados(
+        melhor,
+        solucaoOtima,
+        duracao_s,
+        numGerSemEvo,
+        melhor.genes,
+        dataCVRP,
+        numInslands,
+        opcTopologia
+    );
+}
+
+
+void GeneticAlgorithm::executarAlgoritmoTimeSequencial() {
+
+    int numGerSemEvo = 0;
+    int auxNumGerSemEvo = 0;
+
+    Topologia topologia;
+
+    std::cout << "==================================================TOPOLOGIA=========================================================\n";
+    auto ilhas = topologia.criarTopologia(
+        opcTopologia, numInslands, seed, opcCrossover, opcSelecao
+    );
+
+    if (ilhas.empty()) {
+        throw std::runtime_error("Erro: Nenhuma ilha foi criada. Verifique os parâmetros da topologia.");
+    }
+
+    std::cout << "Numero de individuos por ilha: " << tamPopulacao << std::endl;
+    std::cout << "Preservação de elite: " << tamElite << std::endl;
+    std::cout << "====================================================================================================================\n\n";
+
+    std::cout << "===================================================EXECUCAO=========================================================\n\n";
+
+    auto inicioExecucao = std::chrono::steady_clock::now();
+    const int LIMITE_TEMPO = 200; // segundos
+
+    std::cout << "Gerando população inicial..." << std::endl;
+    gerarPopulacaoDiversificada(ilhas);
+    std::cout << "População inicial gerada." << std::endl;
+
+    Individuo melhor = melhorIndividuo(ilhas, 0);
+    std::cout << "Melhor fitness inicial: " << melhor.fitness << std::endl;
+
+    int geracao = 0;
+
+    // ================= LOOP PRINCIPAL SEQUENCIAL =================
+    while (true) {
+
+        // ================= CONTROLE DE TEMPO =================
+        auto agora = std::chrono::steady_clock::now();
+        auto tempoDecorrido = std::chrono::duration_cast<std::chrono::seconds>(
+            agora - inicioExecucao
+        ).count();
+
+        if (tempoDecorrido >= LIMITE_TEMPO) {
+            break;
+        }
+        std::uniform_real_distribution<double> distLocal(0.0, 1.0);
+        // ================= EXECUÇÃO DAS ILHAS =================
+        for (int i = 0; i < (int)ilhas.size(); i++) {
+            executarGeracao(ilhas[i], distLocal);
+        }
+
+        // ================= MIGRAÇÃO =================
+        if (numInslands > 1) {
+            std::uniform_real_distribution<double> probMigracao(0.0, 1.0);
+            for (auto &ilha : ilhas) {
+                if (probMigracao(ilha.geradorlocal) < 0.15) {
+                    realizarMigracao_Aprimorada(ilhas);
+                    break;
+                }
+            }
+        }
+
+        // ================= MELHOR INDIVÍDUO =================
+        auto auxMelhor = melhorIndividuo(ilhas, geracao);
+
+        if (auxMelhor.fitness < melhor.fitness) {
+            melhor = auxMelhor;
+            auxNumGerSemEvo = 0;
+        } else {
+            auxNumGerSemEvo++;
+        }
+
+        numGerSemEvo = std::max(numGerSemEvo, auxNumGerSemEvo);
+
+        geracao++;
+    }
+
+    auto fim = std::chrono::steady_clock::now();
+    std::chrono::duration<double> duracao = fim - inicioExecucao;
+
+    int duracao_s = std::chrono::duration_cast<std::chrono::seconds>(duracao).count();
+    int solucaoOtima = dataCVRP.solucaoOtima;
+
+    salvarResultados(
+        melhor,
+        solucaoOtima,
+        duracao_s,
+        numGerSemEvo,
+        melhor.genes,
+        dataCVRP,
+        numInslands,
+        opcTopologia
+    );
 }

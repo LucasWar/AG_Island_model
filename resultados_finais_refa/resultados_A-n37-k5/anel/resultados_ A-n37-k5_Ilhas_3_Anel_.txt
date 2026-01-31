@@ -1,0 +1,120 @@
+
+ ===================================================RESULTADOS=========================================================
+Melhor fitness final: 682
+Melhor fitness possivel: 669
+Tempo de execução: 68
+Melhor solução encontrada: 0 12 10 6 2 19 20 14 0 16 22 13 5 33 4 7 0 30 25 35 18 26 31 28 32 29 0 21 1 17 23 24 9 11 27 8 3 0 15 34 36 0 
+Solução encontrada considerada boa
+GAP de 1.9432
+Numero maximo de geracoes sem evolucao: 3
+Solucão valida: Sim
+====================================================================================================================
+
+
+ ===================================================RESULTADOS=========================================================
+Melhor fitness final: 676
+Melhor fitness possivel: 669
+Tempo de execução: 72
+Melhor solução encontrada: 0 1 12 2 19 20 23 14 17 0 15 26 35 18 31 28 32 29 36 34 0 30 25 8 27 11 9 24 3 0 7 4 33 5 6 10 13 22 0 21 16 0 
+Solução encontrada considerada boa
+GAP de 1.04634
+Numero maximo de geracoes sem evolucao: 2
+Solucão valida: Sim
+====================================================================================================================
+
+
+ ===================================================RESULTADOS=========================================================
+Melhor fitness final: 672
+Melhor fitness possivel: 669
+Tempo de execução: 71
+Melhor solução encontrada: 0 7 4 33 5 6 10 13 22 0 1 12 2 19 20 23 14 17 0 30 26 31 28 32 29 36 34 15 0 18 35 25 8 27 11 9 24 3 0 21 16 0 
+Solução encontrada considerada boa
+GAP de 0.44843
+Numero maximo de geracoes sem evolucao: 44
+Solucão valida: Sim
+====================================================================================================================
+
+
+ ===================================================RESULTADOS=========================================================
+Melhor fitness final: 672
+Melhor fitness possivel: 669
+Tempo de execução: 72
+Melhor solução encontrada: 0 7 4 33 5 6 10 13 22 0 30 26 31 28 32 29 36 34 15 0 1 12 2 19 20 23 14 17 0 3 24 9 11 27 8 25 35 18 0 16 21 0 
+Solução encontrada considerada boa
+GAP de 0.44843
+Numero maximo de geracoes sem evolucao: 12
+Solucão valida: Sim
+====================================================================================================================
+
+
+ ===================================================RESULTADOS=========================================================
+Melhor fitness final: 676
+Melhor fitness possivel: 669
+Tempo de execução: 72
+Melhor solução encontrada: 0 26 35 18 31 28 32 29 36 34 0 1 12 2 19 20 23 14 17 0 7 4 33 5 6 10 13 22 0 15 30 25 8 27 11 9 24 3 0 16 21 0 
+Solução encontrada considerada boa
+GAP de 1.04634
+Numero maximo de geracoes sem evolucao: 10
+Solucão valida: Sim
+====================================================================================================================
+
+
+ ===================================================RESULTADOS=========================================================
+Melhor fitness final: 672
+Melhor fitness possivel: 669
+Tempo de execução: 70
+Melhor solução encontrada: 0 34 36 29 32 28 31 26 30 15 0 1 12 2 19 20 23 14 17 0 18 35 25 8 27 11 9 24 3 0 22 13 10 6 5 33 4 7 0 21 16 0 
+Solução encontrada considerada boa
+GAP de 0.44843
+Numero maximo de geracoes sem evolucao: 36
+Solucão valida: Sim
+====================================================================================================================
+
+
+ ===================================================RESULTADOS=========================================================
+Melhor fitness final: 676
+Melhor fitness possivel: 669
+Tempo de execução: 72
+Melhor solução encontrada: 0 1 12 2 19 20 23 14 17 0 30 25 8 27 11 9 24 3 0 36 29 32 28 31 18 35 26 34 15 0 22 13 10 6 5 33 4 7 0 16 21 0 
+Solução encontrada considerada boa
+GAP de 1.04634
+Numero maximo de geracoes sem evolucao: 5
+Solucão valida: Sim
+====================================================================================================================
+
+
+ ===================================================RESULTADOS=========================================================
+Melhor fitness final: 672
+Melhor fitness possivel: 669
+Tempo de execução: 64
+Melhor solução encontrada: 0 3 24 9 11 27 8 25 35 18 0 30 26 31 28 32 29 36 34 15 0 1 12 2 19 20 23 14 17 0 22 13 10 6 5 33 4 7 0 16 21 0 
+Solução encontrada considerada boa
+GAP de 0.44843
+Numero maximo de geracoes sem evolucao: 22
+Solucão valida: Sim
+====================================================================================================================
+
+
+ ===================================================RESULTADOS=========================================================
+Melhor fitness final: 672
+Melhor fitness possivel: 669
+Tempo de execução: 58
+Melhor solução encontrada: 0 7 4 33 5 6 10 13 22 0 3 24 9 11 27 8 25 35 18 0 1 12 2 19 20 23 14 17 0 34 36 29 32 28 31 26 30 15 0 16 21 0 
+Solução encontrada considerada boa
+GAP de 0.44843
+Numero maximo de geracoes sem evolucao: 8
+Solucão valida: Sim
+====================================================================================================================
+
+
+ ===================================================RESULTADOS=========================================================
+Melhor fitness final: 672
+Melhor fitness possivel: 669
+Tempo de execução: 60
+Melhor solução encontrada: 0 3 24 9 11 27 8 25 35 18 0 22 13 10 6 5 33 4 7 0 1 12 2 19 20 23 14 17 0 30 26 31 28 32 29 36 34 15 0 21 16 0 
+Solução encontrada considerada boa
+GAP de 0.44843
+Numero maximo de geracoes sem evolucao: 9
+Solucão valida: Sim
+====================================================================================================================
+

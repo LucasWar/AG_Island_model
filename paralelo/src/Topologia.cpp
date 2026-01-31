@@ -30,9 +30,9 @@ std::vector<Ilha> Topologia::criarTopologia(std::string opcTopologia, int numIlh
 
         // Configuração Padrão da Ilha Sequencial (Geralmente Híbrida/Equilibrada)
         ilha->tipoSelecao = selecao;
-        ilha->tamanhoTorneio = 3;     // Pressão média
-        ilha->proMutacao = 0.25;      // Taxa padrão
-        ilha->usaBuscaLocal = true;   // 2-Opt ativado
+        ilha->tamanhoTorneio = 3;     
+        ilha->proMutacao = 0.25;      
+        ilha->usaBuscaLocal = true;   
 
         // Seleção do Crossover baseada no parâmetro
         if (crossover == "PMX") {
@@ -48,12 +48,7 @@ std::vector<Ilha> Topologia::criarTopologia(std::string opcTopologia, int numIlh
         return ilhas;
     }
 
-    // =========================================================
-    // CASO 2: MODO PARALELO (MÚLTIPLAS ILHAS)
-    // Cria a topologia e aplica a configuração heterogênea
-    // =========================================================
     std::vector<Ilha> ilhas = {};
-    
     if (opcTopologia == "Malha") {
         ilhas = criarMalha(numIlhas, seed);
     } else if (opcTopologia == "Anel") {
@@ -70,7 +65,6 @@ std::vector<Ilha> Topologia::criarTopologia(std::string opcTopologia, int numIlh
     // Configuração das Estratégias Heterogêneas
     for (auto &ilha : ilhas) {
         if (ilha.idIlha % 3 == 0) {
-            // ILHA TIPO 0: Intensificação (PMX, Torneio Forte, Mutação Baixa)
             ilha.tipoSelecao = "Torneio";
             ilha.tamanhoTorneio = 5;
             ilha.proMutacao = 0.15;
@@ -78,15 +72,13 @@ std::vector<Ilha> Topologia::criarTopologia(std::string opcTopologia, int numIlh
             ilha.usaBuscaLocal = true; 
 
         } else if (ilha.idIlha % 3 == 1) {
-            // ILHA TIPO 1: Exploração via Mutação (A versão corrigida que discutimos)
             ilha.tipoSelecao = "Torneio"; 
-            ilha.tamanhoTorneio = 2;     // Baixa pressão
-            ilha.proMutacao = 0.50;      // Alta mutação (Exploração)
-            ilha.crossoverilha = std::make_unique<PMXCrossover>(); // PMX (melhor que OX)
-            ilha.usaBuscaLocal = true;   // Com 2-Opt
+            ilha.tamanhoTorneio = 2;     
+            ilha.proMutacao = 0.50;     
+            ilha.crossoverilha = std::make_unique<PMXCrossover>();
+            ilha.usaBuscaLocal = true;   
 
         } else {
-            // ILHA TIPO 2: Híbrida (RBX, Torneio Médio, Mutação Média)
             ilha.tipoSelecao = "Torneio";
             ilha.tamanhoTorneio = 3;
             ilha.proMutacao = 0.25;

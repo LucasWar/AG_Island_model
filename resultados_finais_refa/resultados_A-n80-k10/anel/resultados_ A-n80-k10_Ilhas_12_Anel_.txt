@@ -2,7 +2,7 @@
  ===================================================RESULTADOS=========================================================
 Melhor fitness final: 1798
 Melhor fitness possivel: 1763
-Tempo de execução: 51
+Tempo de execução: 50
 Melhor solução encontrada: 0 70 50 45 22 4 32 58 73 0 13 3 60 39 77 51 42 0 68 43 16 61 57 19 26 35 65 69 56 47 33 0 76 72 54 9 55 15 41 25 46 64 0 52 34 2 37 8 78 20 75 27 17 0 62 23 12 44 5 29 74 0 10 71 28 79 18 48 14 0 63 11 24 6 30 59 31 0 36 53 66 67 38 49 0 1 7 21 40 0 
 Solução encontrada considerada boa
 GAP de 1.98525
@@ -14,7 +14,7 @@ Solucão valida: Sim
  ===================================================RESULTADOS=========================================================
 Melhor fitness final: 1793
 Melhor fitness possivel: 1763
-Tempo de execução: 48
+Tempo de execução: 47
 Melhor solução encontrada: 0 42 53 66 67 36 73 49 0 3 60 31 17 29 74 13 0 27 59 19 26 35 65 69 56 47 41 25 46 0 71 14 48 18 79 28 52 0 62 23 24 11 63 10 21 0 38 72 54 9 55 15 33 64 39 77 51 0 20 75 57 61 16 43 68 78 30 44 0 12 5 6 8 37 2 34 0 58 32 4 22 45 50 76 70 0 1 7 40 0 
 Solução encontrada considerada boa
 GAP de 1.70164
@@ -38,7 +38,7 @@ Solucão valida: Sim
  ===================================================RESULTADOS=========================================================
 Melhor fitness final: 1778
 Melhor fitness possivel: 1763
-Tempo de execução: 51
+Tempo de execução: 50
 Melhor solução encontrada: 0 3 39 60 29 74 13 0 10 34 2 37 8 68 43 16 61 78 0 71 14 48 18 79 28 52 0 38 72 54 9 55 33 15 41 46 77 51 0 58 32 4 22 45 50 76 70 0 64 25 19 47 56 69 65 35 26 57 75 20 31 0 17 27 59 5 44 12 62 0 63 11 24 6 30 23 0 42 53 67 66 36 73 49 0 1 7 21 40 0 
 Solução encontrada considerada boa
 GAP de 0.850822
@@ -50,7 +50,7 @@ Solucão valida: Sim
  ===================================================RESULTADOS=========================================================
 Melhor fitness final: 1802
 Melhor fitness possivel: 1763
-Tempo de execução: 52
+Tempo de execução: 51
 Melhor solução encontrada: 0 29 59 27 17 74 3 0 30 78 68 43 16 61 57 75 20 31 0 52 28 79 18 48 14 71 0 49 73 38 66 36 42 0 12 44 5 23 62 63 0 53 33 15 47 19 26 35 65 69 56 55 9 54 72 70 0 58 32 4 22 45 50 76 67 0 24 6 8 37 2 34 11 10 0 51 77 39 64 41 25 46 60 13 0 1 7 21 40 0 
 Solução encontrada considerada boa
 GAP de 2.21214
@@ -62,7 +62,7 @@ Solucão valida: Sim
  ===================================================RESULTADOS=========================================================
 Melhor fitness final: 1818
 Melhor fitness possivel: 1763
-Tempo de execução: 50
+Tempo de execução: 52
 Melhor solução encontrada: 0 59 27 31 17 74 3 77 51 0 28 79 18 48 14 71 10 0 42 12 23 62 13 0 39 64 33 15 41 25 75 20 46 60 0 58 32 4 22 45 50 76 70 0 73 36 53 66 67 38 49 0 57 19 47 26 35 65 69 56 55 9 54 72 0 29 5 30 6 24 34 11 63 0 44 78 61 16 43 68 8 37 2 52 0 1 7 21 40 0 
 Solução encontrada considerada boa
 GAP de 3.11968
@@ -74,7 +74,7 @@ Solucão valida: Sim
  ===================================================RESULTADOS=========================================================
 Melhor fitness final: 1799
 Melhor fitness possivel: 1763
-Tempo de execução: 46
+Tempo de execução: 50
 Melhor solução encontrada: 0 36 72 54 9 55 56 69 65 35 26 19 47 15 33 77 51 0 71 14 48 18 79 28 52 0 20 75 57 61 16 43 68 78 30 44 0 10 11 34 2 37 8 6 24 0 63 62 23 5 12 13 0 42 66 67 38 73 49 0 74 17 31 60 39 3 0 70 76 50 45 22 4 32 58 0 53 64 46 41 25 59 27 29 0 40 21 7 1 0 
 Solução encontrada considerada boa
 GAP de 2.04197
@@ -110,11 +110,10 @@ Solucão valida: Sim
  ===================================================RESULTADOS=========================================================
 Melhor fitness final: 1787
 Melhor fitness possivel: 1763
-Tempo de execução: 50
+Tempo de execução: 51
 Melhor solução encontrada: 0 13 74 60 39 3 0 17 31 27 59 30 6 24 10 0 76 50 45 22 4 32 58 0 5 78 61 16 43 68 8 37 2 34 0 36 70 72 54 9 55 15 41 25 46 77 0 12 44 23 11 63 62 0 71 14 48 18 79 28 52 0 29 20 75 57 19 47 26 35 65 69 56 33 64 51 0 49 73 38 67 66 53 42 0 1 7 21 40 0 
 Solução encontrada considerada boa
 GAP de 1.36132
 Numero maximo de geracoes sem evolucao: 82
 Solucão valida: Sim
 ====================================================================================================================
-

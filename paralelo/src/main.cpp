@@ -4,12 +4,12 @@
 #include <iostream>
 #include <windows.h>
 
-#define ARQUIVO_ENTRADA "entradas/X-n181-k23.txt"
+#define ARQUIVO_ENTRADA "entradas/M-n200-k17.txt"
 #define NUMERO_GERACOES 3000
 #define PROB_MUTACAO    0.25
-#define TAM_POPULCAO    665
+#define TAM_POPULCAO    2000
 #define TAM_ELITE       0.08
-#define NUM_ISLANDS     3
+#define NUM_ISLANDS     12
 #define FREQ_MIGRACAO   5
 #define NUM_MIGRACAO    0.05
 #define TOPOLOGIA       "Malha"    

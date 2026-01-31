@@ -77,5 +77,6 @@ public:
     void verificarEexecutarResgateColonial(vetorIlhas &ilhas, int geracaoAtual);
     double calcularDiversidade(const vectorIndiviudos &pop);
     void reiniciarPopulacoes(Ilha &ilha, int geracaoAtual);
-
+    void executarAlgoritmoTime();
+    void executarAlgoritmoTimeSequencial();
 };
